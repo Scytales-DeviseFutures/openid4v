@@ -252,7 +252,11 @@ class Credential(UserInfo):
 
     def process_request(self, request=None, **kwargs):
         print("\n Credential process request")
-        allowed, client_id = self.verify_token_and_authentication(request)
+        tokenAuthResult = self.verify_token_and_authentication(request)
+        if "error" in tokenAuthResult:
+            return tokenAuthResult
+
+        allowed, client_id = tokenAuthResult
         if not isinstance(allowed, bool):
             return allowed
 
