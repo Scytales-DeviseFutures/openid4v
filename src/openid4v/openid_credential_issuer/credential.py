@@ -271,16 +271,22 @@ class Credential(UserInfo):
 
         user_id = _session_info["user_id"]
 
-        info = user_id.split(".")
+        info = user_id.split(".", 1)
 
         redirect_uri = ""
         if info[0] == "PT":
-            redirect_uri = "https://127.0.0.1:5000/cmd/R2?user_id="
+            redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/R2?user_id="
         if info[0] == "EE":
-            redirect_uri = "https://127.0.0.1:5000/tara/R2?user_id="
+            redirect_uri = "https://preprod.issuer.eudiw.dev/tara/R2?user_id="
+        if info[0] == "CW":
+            redirect_uri = (
+                "https://preprod.issuer.eudiw.dev/eidasnode_V04/eidasR2?user_id="
+            )
+        if info[0] == "FC":
+            redirect_uri = "https://preprod.issuer.eudiw.dev/V04/form_R2?user_id="
 
         _msg = requests.get(
-            redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
+            redirect_uri + info[1] + "&device_publickey=" + device_key
         ).json()
 
         _resp = {
