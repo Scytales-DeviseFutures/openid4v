@@ -273,9 +273,27 @@ class Credential(UserInfo):
         #    user_id=_session_info["user_id"], request=request
         # )
 
+        if "proof" not in request:
+            _resp = {
+                "error": "invalid_proof",
+                "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
+                "c_nonce": rndstr(),
+                "c_nonce_expires_in": 86400,
+            }
+            return {"response_args": _resp, "client_id": client_id}
+
         jwt_encoded = request["proof"]["jwt"]
         jwt_decoded = jwt.get_unverified_header(jwt_encoded)
         print("\nJWT Header: ", jwt_decoded)
+
+        if "crv" not in jwt_decoded or jwt_decoded["crv"] != "P-256":
+            _resp = {
+                "error": "invalid_proof",
+                "error_description": "Credential Issuer only supports P-256 curves",
+                "c_nonce": rndstr(),
+                "c_nonce_expires_in": 86400,
+            }
+            return {"response_args": _resp, "client_id": client_id}
 
         x = jwt_decoded["x"]
         y = jwt_decoded["y"]
