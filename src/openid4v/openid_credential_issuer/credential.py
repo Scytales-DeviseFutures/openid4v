@@ -22,6 +22,12 @@ from openid4v.message import CredentialResponse
 from openid4v.message import CredentialsSupported
 from openid4v.message import Proof
 
+import json
+import jwt
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+import base64
+
 logger = logging.getLogger(__name__)
 
 
@@ -267,7 +273,39 @@ class Credential(UserInfo):
         #    user_id=_session_info["user_id"], request=request
         # )
 
-        device_key = request["proof"]["device_publickey"]
+        jwt_encoded = request["proof"]["jwt"]
+        jwt_decoded = jwt.get_unverified_header(jwt_encoded)
+        print("\nJWT Header: ", jwt_decoded)
+
+        x = jwt_decoded["x"]
+        y = jwt_decoded["y"]
+
+        # Convert string coordinates to bytes
+        x_bytes = base64.urlsafe_b64decode(x + "=" * (4 - len(x) % 4))
+        y_bytes = base64.urlsafe_b64decode(y + "=" * (4 - len(y) % 4))
+
+        # Create a public key from the bytes
+        public_numbers = ec.EllipticCurvePublicNumbers(
+            x=int.from_bytes(x_bytes, "big"),
+            y=int.from_bytes(y_bytes, "big"),
+            curve=ec.SECP256R1(),
+        )
+
+        public_key = public_numbers.public_key()
+
+        # Serialize the public key to PEM format
+        public_key_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        # Encode the public key in base64url format
+
+        device_key = (
+            base64.urlsafe_b64encode(public_key_pem).decode("utf-8").rstrip("=")
+        )
+
+        print("\nDevice Key: ", device_key)
 
         user_id = _session_info["user_id"]
 
@@ -279,9 +317,7 @@ class Credential(UserInfo):
         if info[0] == "EE":
             redirect_uri = "https://preprod.issuer.eudiw.dev/tara/R2?user_id="
         if info[0] == "CW":
-            redirect_uri = (
-                "https://preprod.issuer.eudiw.dev/eidasnode_V04/eidasR2?user_id="
-            )
+            redirect_uri = "https://preprod.issuer.eudiw.dev/eidasnode/eidasR2?user_id="
         if info[0] == "FC":
             redirect_uri = "https://preprod.issuer.eudiw.dev/V04/form_R2?user_id="
 
@@ -289,9 +325,20 @@ class Credential(UserInfo):
             redirect_uri + info[1] + "&device_publickey=" + device_key
         ).json()
 
+        credentialformat = request["format"]
+
+        if credentialformat == "mso_mdoc":
+            msg = _msg["mdoc"]
+        elif credentialformat == "vc+sd-jwt":
+            msg = _msg["sd-jwt"]
+        else:
+            return self.error_cls(
+                error="invalid format", error_description="invalid format"
+            )
+
         _resp = {
-            "format": "vc+mdoc+sd-jwt",
-            "credential": _msg,
+            "format": credentialformat,
+            "credential": msg,
             "c_nonce": rndstr(),
             "c_nonce_expires_in": 86400,
         }
