@@ -285,8 +285,13 @@ class Credential(UserInfo):
         jwt_encoded = request["proof"]["jwt"]
         jwt_decoded = jwt.get_unverified_header(jwt_encoded)
         print("\nJWT Header: ", jwt_decoded)
+        print("\n1 ", jwt_decoded["alg"])
+        print("\n2 ", jwt_decoded["jwk"])
+        jwk = jwt_decoded["jwk"]
+        print("\nJWK: ", jwk)
 
-        if "crv" not in jwt_decoded or jwt_decoded["crv"] != "P-256":
+        if "crv" not in jwk or jwk["crv"] != "P-256":
+            print("\nInside jwk if")
             _resp = {
                 "error": "invalid_proof",
                 "error_description": "Credential Issuer only supports P-256 curves",
@@ -295,8 +300,11 @@ class Credential(UserInfo):
             }
             return {"response_args": _resp, "client_id": client_id}
 
-        x = jwt_decoded["x"]
-        y = jwt_decoded["y"]
+        x = jwk["x"]
+        y = jwk["y"]
+
+        print("\nx: ", x)
+        print("\ny: ", y)
 
         # Convert string coordinates to bytes
         x_bytes = base64.urlsafe_b64decode(x + "=" * (4 - len(x) % 4))
