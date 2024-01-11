@@ -337,18 +337,49 @@ class Credential(UserInfo):
 
         info = user_id.split(".", 1)
 
+        print("\nSession Info: ", _session_info)
+
         redirect_uri = ""
-        if info[0] == "PT":
-            redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/R2?user_id="
-        if info[0] == "EE":
-            redirect_uri = "https://preprod.issuer.eudiw.dev/tara/R2?user_id="
-        if info[0] == "CW":
-            redirect_uri = "https://preprod.issuer.eudiw.dev/eidasnode/eidasR2?user_id="
-        if info[0] == "FC":
-            redirect_uri = "https://preprod.issuer.eudiw.dev/V04/form_R2?user_id="
+        if "doctype" not in request:
+            _resp = {
+                "error": "invalid_credential_request",
+                "error_description": "Missing doctype",
+                "c_nonce": rndstr(),
+                "c_nonce_expires_in": 86400,
+            }
+            return {"response_args": _resp, "client_id": client_id}
+
+        if request["doctype"] == "eu.europa.ec.eudiw.pid.1":
+            if info[0] == "PT":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/R2?user_id="
+            if info[0] == "EE":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/tara/R2?user_id="
+            if info[0] == "CW":
+                redirect_uri = (
+                    "https://preprod.issuer.eudiw.dev/eidasnode/eidasR2?user_id="
+                )
+            if info[0] == "FC":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/V04/form_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/V04/form_R2?user_id="
+
+        if request["doctype"] == "org.iso.18013.5.1.mDL":
+            if info[0] == "PT":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/mdl_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/cmd/mdl_R2?user_id="
+            if info[0] == "FC":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/mdl/form_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/mdl/form_R2?user_id="
+
+        if request["doctype"] == "eu.europa.ec.eudiw.qeaa.1":
+            if info[0] == "PT":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/qeaa/R2?user_id="
+            if info[0] == "FC":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/form_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/qeaa/form_R2?user_id="
 
         _msg = requests.get(
-            redirect_uri + info[1] + "&device_publickey=" + device_key
+            redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
         ).json()
 
         credentialformat = request["format"]
