@@ -349,7 +349,24 @@ class Credential(UserInfo):
             }
             return {"response_args": _resp, "client_id": client_id}
 
-        if request["doctype"] == "eu.europa.ec.eudiw.pid.1":
+        # if request["doctype"] == "eu.europa.ec.eudiw.pid.1":
+
+        if request["doctype"] == "org.iso.18013.5.1.mDL":
+            if info[0] == "PT":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/mdl_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/cmd/mdl_R2?user_id="
+            if info[0] == "FC":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/mdl/form_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/mdl/form_R2?user_id="
+
+        elif request["doctype"] == "eu.europa.ec.eudiw.qeaa.1":
+            if info[0] == "PT":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/qeaa/R2?user_id="
+            if info[0] == "FC":
+                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/form_R2?user_id="
+                # redirect_uri = "https://127.0.0.1:4430/qeaa/form_R2?user_id="
+        else:
             if info[0] == "PT":
                 redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/R2?user_id="
             if info[0] == "EE":
@@ -361,22 +378,6 @@ class Credential(UserInfo):
             if info[0] == "FC":
                 redirect_uri = "https://preprod.issuer.eudiw.dev/V04/form_R2?user_id="
                 # redirect_uri = "https://127.0.0.1:4430/V04/form_R2?user_id="
-
-        if request["doctype"] == "org.iso.18013.5.1.mDL":
-            if info[0] == "PT":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/mdl_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/cmd/mdl_R2?user_id="
-            if info[0] == "FC":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/mdl/form_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/mdl/form_R2?user_id="
-
-        if request["doctype"] == "eu.europa.ec.eudiw.qeaa.1":
-            if info[0] == "PT":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/qeaa/R2?user_id="
-            if info[0] == "FC":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/form_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/qeaa/form_R2?user_id="
 
         _msg = requests.get(
             redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
