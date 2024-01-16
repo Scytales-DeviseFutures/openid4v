@@ -27,6 +27,8 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
+from app.app_config.config_oidc_endpoints import ConfService as cfgoidc
+
 
 logger = logging.getLogger(__name__)
 
@@ -351,33 +353,31 @@ class Credential(UserInfo):
 
         # if request["doctype"] == "eu.europa.ec.eudiw.pid.1":
 
+        doc_country = request["doctype"] + "." + info[0]
+        redirect_uri = cfgoidc.credential_urls[doc_country]
+
+        """ 
         if request["doctype"] == "org.iso.18013.5.1.mDL":
             if info[0] == "PT":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/mdl_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/cmd/mdl_R2?user_id="
+                redirect_uri = cfgoidc.mDL_PT
             if info[0] == "FC":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/mdl/form_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/mdl/form_R2?user_id="
+                redirect_uri = cfgoidc.mDL_FC
 
         elif request["doctype"] == "eu.europa.ec.eudiw.qeaa.1":
             if info[0] == "PT":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/qeaa/R2?user_id="
+                redirect_uri = cfgoidc.qeaa_PT
             if info[0] == "FC":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/qeaa/form_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/qeaa/form_R2?user_id="
+                redirect_uri = cfgoidc.qeaa_FC
         else:
             if info[0] == "PT":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/cmd/R2?user_id="
+                redirect_uri = cfgoidc.pid_PT
             if info[0] == "EE":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/tara/R2?user_id="
+                redirect_uri = cfgoidc.pid_EE
             if info[0] == "CW":
-                redirect_uri = (
-                    "https://preprod.issuer.eudiw.dev/eidasnode/eidasR2?user_id="
-                )
+                redirect_uri = cfgoidc.pid_CW
             if info[0] == "FC":
-                redirect_uri = "https://preprod.issuer.eudiw.dev/V04/form_R2?user_id="
-                # redirect_uri = "https://127.0.0.1:4430/V04/form_R2?user_id="
+                redirect_uri = cfgoidc.pid_FC
+        """
 
         _msg = requests.get(
             redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
