@@ -286,14 +286,9 @@ class Credential(UserInfo):
 
         jwt_encoded = request["proof"]["jwt"]
         jwt_decoded = jwt.get_unverified_header(jwt_encoded)
-        print("\nJWT Header: ", jwt_decoded)
-        print("\n1 ", jwt_decoded["alg"])
-        print("\n2 ", jwt_decoded["jwk"])
         jwk = jwt_decoded["jwk"]
-        print("\nJWK: ", jwk)
 
         if "crv" not in jwk or jwk["crv"] != "P-256":
-            print("\nInside jwk if")
             _resp = {
                 "error": "invalid_proof",
                 "error_description": "Credential Issuer only supports P-256 curves",
@@ -304,9 +299,6 @@ class Credential(UserInfo):
 
         x = jwk["x"]
         y = jwk["y"]
-
-        print("\nx: ", x)
-        print("\ny: ", y)
 
         # Convert string coordinates to bytes
         x_bytes = base64.urlsafe_b64decode(x + "=" * (4 - len(x) % 4))
@@ -333,13 +325,9 @@ class Credential(UserInfo):
             base64.urlsafe_b64encode(public_key_pem).decode("utf-8").rstrip("=")
         )
 
-        print("\nDevice Key: ", device_key)
-
         user_id = _session_info["user_id"]
 
         info = user_id.split(".", 1)
-
-        print("\nSession Info: ", _session_info)
 
         redirect_uri = ""
         if "doctype" not in request:
@@ -351,33 +339,8 @@ class Credential(UserInfo):
             }
             return {"response_args": _resp, "client_id": client_id}
 
-        # if request["doctype"] == "eu.europa.ec.eudiw.pid.1":
-
         doc_country = request["doctype"] + "." + info[0]
         redirect_uri = cfgoidc.credential_urls[doc_country]
-
-        """ 
-        if request["doctype"] == "org.iso.18013.5.1.mDL":
-            if info[0] == "PT":
-                redirect_uri = cfgoidc.mDL_PT
-            if info[0] == "FC":
-                redirect_uri = cfgoidc.mDL_FC
-
-        elif request["doctype"] == "eu.europa.ec.eudiw.qeaa.1":
-            if info[0] == "PT":
-                redirect_uri = cfgoidc.qeaa_PT
-            if info[0] == "FC":
-                redirect_uri = cfgoidc.qeaa_FC
-        else:
-            if info[0] == "PT":
-                redirect_uri = cfgoidc.pid_PT
-            if info[0] == "EE":
-                redirect_uri = cfgoidc.pid_EE
-            if info[0] == "CW":
-                redirect_uri = cfgoidc.pid_CW
-            if info[0] == "FC":
-                redirect_uri = cfgoidc.pid_FC
-        """
 
         _msg = requests.get(
             redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
@@ -400,4 +363,5 @@ class Credential(UserInfo):
             "c_nonce": rndstr(),
             "c_nonce_expires_in": 86400,
         }
+        logger.info("Response: ", _resp)
         return {"response_args": _resp, "client_id": client_id}
