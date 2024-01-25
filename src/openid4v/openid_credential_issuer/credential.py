@@ -286,8 +286,13 @@ class Credential(UserInfo):
 
         jwt_encoded = request["proof"]["jwt"]
         jwt_decoded = jwt.get_unverified_header(jwt_encoded)
-        jwk = jwt_decoded["jwk"]
-
+        # jwk = jwt_decoded["jwk"]
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": "hwAR3O8E7NQSqpKdaZQtlcfsBqcyFxZL7uMbOsZEYuk",
+            "y": "CKVRnmFKLF-l0hr89ZCd1ngbMsfuOPOkleD7EOjNriw",
+        }
         if "crv" not in jwk or jwk["crv"] != "P-256":
             _resp = {
                 "error": "invalid_proof",
@@ -321,16 +326,14 @@ class Credential(UserInfo):
 
         # Encode the public key in base64url format
 
-        device_key = (
-            base64.urlsafe_b64encode(public_key_pem).decode("utf-8").rstrip("=")
-        )
+        device_key = base64.urlsafe_b64encode(public_key_pem).decode("utf-8")
 
         user_id = _session_info["user_id"]
 
         info = user_id.split(".", 1)
 
         redirect_uri = ""
-        if "doctype" not in request:
+        if "doctype" not in request or "oidc_config" not in request:
             _resp = {
                 "error": "invalid_credential_request",
                 "error_description": "Missing doctype",
@@ -340,7 +343,7 @@ class Credential(UserInfo):
             return {"response_args": _resp, "client_id": client_id}
 
         doc_country = request["doctype"] + "." + info[0]
-        redirect_uri = cfgoidc.credential_urls[doc_country]
+        redirect_uri = request["oidc_config"].credential_urls[doc_country]
 
         _msg = requests.get(
             redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
