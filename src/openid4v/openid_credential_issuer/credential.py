@@ -340,7 +340,7 @@ class Credential(UserInfo):
         redirect_uri = request["oidc_config"].credential_urls[doc_country]
 
         _msg = requests.get(
-            redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
+            redirect_uri + info[1] + "&device_publickey=" + device_key
         ).json()
 
         credentialformat = request["format"]
