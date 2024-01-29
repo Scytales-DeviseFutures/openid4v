@@ -286,13 +286,8 @@ class Credential(UserInfo):
 
         jwt_encoded = request["proof"]["jwt"]
         jwt_decoded = jwt.get_unverified_header(jwt_encoded)
-        # jwk = jwt_decoded["jwk"]
-        jwk = {
-            "kty": "EC",
-            "crv": "P-256",
-            "x": "hwAR3O8E7NQSqpKdaZQtlcfsBqcyFxZL7uMbOsZEYuk",
-            "y": "CKVRnmFKLF-l0hr89ZCd1ngbMsfuOPOkleD7EOjNriw",
-        }
+        jwk = jwt_decoded["jwk"]
+
         if "crv" not in jwk or jwk["crv"] != "P-256":
             _resp = {
                 "error": "invalid_proof",
