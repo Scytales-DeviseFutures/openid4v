@@ -27,7 +27,6 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
-from app.app_config.config_oidc_endpoints import ConfService as cfgoidc
 
 
 logger = logging.getLogger(__name__)
