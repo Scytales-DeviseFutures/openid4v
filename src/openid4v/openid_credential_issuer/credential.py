@@ -246,44 +246,8 @@ class Credential(UserInfo):
             #     pass
         return True, _session_info["client_id"]
 
-    def process_request(self, request=None, **kwargs):
-        tokenAuthResult = self.verify_token_and_authentication(request)
-        if "error" in tokenAuthResult:
-            return tokenAuthResult
-
-        allowed, client_id = tokenAuthResult
-        if not isinstance(allowed, bool):
-            return allowed
-
-        if not allowed:
-            return self.error_cls(
-                error="invalid_token", error_description="Access not granted"
-            )
-
-        try:
-            _mngr = self.upstream_get("context").session_manager
-            _session_info = _mngr.get_session_info_by_token(
-                request["access_token"], grant=True, handler_key="access_token"
-            )
-        except (KeyError, ValueError):
-            return self.error_cls(
-                error="invalid_token", error_description="Invalid Token"
-            )
-
-        # _msg = self.credential_constructor(
-        #    user_id=_session_info["user_id"], request=request
-        # )
-
-        if "proof" not in request:
-            _resp = {
-                "error": "invalid_proof",
-                "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
-                "c_nonce": rndstr(),
-                "c_nonce_expires_in": 86400,
-            }
-            return {"response_args": _resp, "client_id": client_id}
-
-        jwt_encoded = request["proof"]["jwt"]
+    # gets the public key from a JWK
+    def pKfromJWK(self, jwt_encoded):
         jwt_decoded = jwt.get_unverified_header(jwt_encoded)
         jwk = jwt_decoded["jwk"]
 
@@ -294,7 +258,7 @@ class Credential(UserInfo):
                 "c_nonce": rndstr(),
                 "c_nonce_expires_in": 86400,
             }
-            return {"response_args": _resp, "client_id": client_id}
+            return _resp  # {"response_args": _resp, "client_id": client_id}
 
         x = jwk["x"]
         y = jwk["y"]
@@ -322,6 +286,45 @@ class Credential(UserInfo):
 
         device_key = base64.urlsafe_b64encode(public_key_pem).decode("utf-8")
 
+        return device_key
+
+    def singleCredential(self, request):
+        tokenAuthResult = self.verify_token_and_authentication(request)
+        if "error" in tokenAuthResult:
+            return tokenAuthResult
+
+        allowed, client_id = tokenAuthResult
+        if not isinstance(allowed, bool):
+            return allowed
+
+        if not allowed:
+            return self.error_cls(
+                error="invalid_token", error_description="Access not granted"
+            )
+
+        try:
+            _mngr = self.upstream_get("context").session_manager
+            _session_info = _mngr.get_session_info_by_token(
+                request["access_token"], grant=True, handler_key="access_token"
+            )
+        except (KeyError, ValueError):
+            return self.error_cls(
+                error="invalid_token", error_description="Invalid Token"
+            )
+
+        if "proof" not in request:
+            _resp = {
+                "error": "invalid_proof",
+                "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
+            }
+            return _resp, client_id  # {"response_args": _resp, "client_id": client_id}
+
+        jwt_encoded = request["proof"]["jwt"]
+
+        device_key = self.pKfromJWK(jwt_encoded)
+        if "error" in device_key:
+            return device_key, client_id
+
         user_id = _session_info["user_id"]
 
         info = user_id.split(".", 1)
@@ -331,16 +334,14 @@ class Credential(UserInfo):
             _resp = {
                 "error": "invalid_credential_request",
                 "error_description": "Missing doctype",
-                "c_nonce": rndstr(),
-                "c_nonce_expires_in": 86400,
             }
-            return {"response_args": _resp, "client_id": client_id}
+            return _resp, client_id  # {"response_args": _resp, "client_id": client_id}
 
         doc_country = request["doctype"] + "." + info[0]
         redirect_uri = request["oidc_config"].credential_urls[doc_country]
 
         _msg = requests.get(
-            redirect_uri + info[1] + "&device_publickey=" + device_key
+            redirect_uri + info[1] + "&device_publickey=" + device_key, verify=False
         ).json()
 
         credentialformat = request["format"]
@@ -355,10 +356,39 @@ class Credential(UserInfo):
             )
 
         _resp = {
-            "format": credentialformat,
             "credential": msg,
+        }
+
+        return _resp, client_id
+
+    def batchCredential(self, request):
+        credentials = {"credential_responses": []}
+
+        for credential in request["credential_requests"]:
+            credential["oidc_config"] = request["oidc_config"]
+            credential["access_token"] = request["access_token"]
+
+            single_resp, client_id = self.singleCredential(credential)
+            credentials["credential_responses"].append(single_resp)
+
+        return credentials, client_id
+
+    def process_request(self, request=None, **kwargs):
+        # _msg = self.credential_constructor(
+        #    user_id=_session_info["user_id"], request=request
+        # )
+
+        if "credential_requests" in request:
+            credentials, client_id = self.batchCredential(request)
+        else:
+            credentials, client_id = self.singleCredential(request)
+
+        _resp = {
             "c_nonce": rndstr(),
             "c_nonce_expires_in": 86400,
         }
+
+        _resp.update(credentials)
+
         logger.info("Response: ", _resp)
         return {"response_args": _resp, "client_id": client_id}
