@@ -288,19 +288,8 @@ class Credential(UserInfo):
 
         return device_key
 
-    def singleCredential(self, request):
-        tokenAuthResult = self.verify_token_and_authentication(request)
-        if "error" in tokenAuthResult:
-            return tokenAuthResult
-
-        allowed, client_id = tokenAuthResult
-        if not isinstance(allowed, bool):
-            return allowed
-
-        if not allowed:
-            return self.error_cls(
-                error="invalid_token", error_description="Access not granted"
-            )
+    def credentialReq(self, request, client_id):
+        print("\n Inside credentialReq", request["credential_requests"])
 
         try:
             _mngr = self.upstream_get("context").session_manager
@@ -311,115 +300,6 @@ class Credential(UserInfo):
             return self.error_cls(
                 error="invalid_token", error_description="Invalid Token"
             )
-
-        if "proof" not in request:
-            _resp = {
-                "error": "invalid_proof",
-                "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
-            }
-            return _resp, client_id  # {"response_args": _resp, "client_id": client_id}
-
-        jwt_encoded = request["proof"]["jwt"]
-
-        device_key = self.pKfromJWK(jwt_encoded)
-        if "error" in device_key:
-            return device_key, client_id
-
-        user_id = _session_info["user_id"]
-
-        info = user_id.split(".", 1)
-
-        redirect_uri = ""
-        if "doctype" not in request or "oidc_config" not in request:
-            _resp = {
-                "error": "invalid_credential_request",
-                "error_description": "Missing doctype",
-            }
-            return _resp, client_id  # {"response_args": _resp, "client_id": client_id}
-
-        doc_country = request["doctype"] + "." + info[0]
-        redirect_uri = request["oidc_config"].credential_urls[doc_country]
-
-        _msg = requests.get(
-            redirect_uri + "?user_id=" + info[1] + "&device_publickey=" + device_key,
-            verify=False,
-        ).json()
-
-        credentialformat = request["format"]
-
-        if credentialformat == "mso_mdoc":
-            msg = _msg["mdoc"]
-        elif credentialformat == "vc+sd-jwt":
-            msg = _msg["sd-jwt"]
-        else:
-            return self.error_cls(
-                error="invalid format", error_description="invalid format"
-            )
-
-        _resp = {
-            "credential": msg,
-        }
-
-        return _resp, client_id
-
-    def batchCredential(self, request):
-        credentials = {"credential_responses": []}
-
-        for credential in request["credential_requests"]:
-            credential["oidc_config"] = request["oidc_config"]
-            credential["access_token"] = request["access_token"]
-
-            single_resp, client_id = self.singleCredential(credential)
-            credentials["credential_responses"].append(single_resp)
-
-        return credentials, client_id
-
-    def credentialReq(self, request):
-        print(request["credential_requests"])
-
-        tokenAuthResult = self.verify_token_and_authentication(request)
-        if "error" in tokenAuthResult:
-            return tokenAuthResult
-
-        allowed, client_id = tokenAuthResult
-        if not isinstance(allowed, bool):
-            return allowed
-
-        if not allowed:
-            return self.error_cls(
-                error="invalid_token", error_description="Access not granted"
-            )
-
-        try:
-            _mngr = self.upstream_get("context").session_manager
-            _session_info = _mngr.get_session_info_by_token(
-                request["access_token"], grant=True, handler_key="access_token"
-            )
-        except (KeyError, ValueError):
-            return self.error_cls(
-                error="invalid_token", error_description="Invalid Token"
-            )
-
-        for credential in request["credential_requests"]:
-            if "proof" not in credential:
-                _resp = {
-                    "error": "invalid_proof",
-                    "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
-                }
-                return (
-                    _resp,
-                    client_id,
-                )  # {"response_args": _resp, "client_id": client_id}
-
-            if "doctype" not in credential or "oidc_config" not in request:
-                _resp = {
-                    "error": "invalid_credential_request",
-                    "error_description": "Missing doctype",
-                }
-                return (
-                    _resp,
-                    client_id,
-                )  # {"response_args": _resp, "client_id": client_id}
 
         for credential in request["credential_requests"]:
             jwt_encoded = credential["proof"]["jwt"]
@@ -427,6 +307,7 @@ class Credential(UserInfo):
             if "error" in device_key:
                 return device_key, client_id
             credential["device_publickey"] = device_key
+            credential.pop("proof")
 
         user_id = _session_info["user_id"]
 
@@ -440,19 +321,12 @@ class Credential(UserInfo):
             request["credential_requests"],
         )
 
-        """ _msg = requests.get(
-            redirect_uri
-            + "?user_id="
-            + info[1]
-            + "&credential_requests="
-            + json.dumps(request["credential_requests"]),
-            verify=False,
-        ).json() """
-
         data = {
             "credential_requests": request["credential_requests"],
-            "user_id": info[1],
+            "user_id": user_id,
         }
+
+        print("\nData:\n", data)
 
         json_data = json.dumps(data)
         headers = {"Content-Type": "application/json"}
@@ -460,32 +334,145 @@ class Credential(UserInfo):
             redirect_uri, data=json_data, headers=headers, verify=False
         ).json()
 
-        """ credentialformat = request["format"]
+        print("\n---------------_MSG------------\n", _msg)
 
-        if credentialformat == "mso_mdoc":
-            msg = _msg["mdoc"]
-        elif credentialformat == "vc+sd-jwt":
-            msg = _msg["sd-jwt"]
-        else:
-            return self.error_cls(
-                error="invalid format", error_description="invalid format"
-            ) """
-
-        credentials = {"credential_responses": []}
+        """ credentials = {"credential_responses": []}
         for credential in _msg:
-            credentials["credential_responses"].append({credential: _msg[credential]})
+            credentials["credential_responses"].append({credential: _msg[credential]}) """
 
-        return credentials, client_id
+        if len(_msg["credential_responses"]) == 1:
+            _msg = _msg["credential_responses"][0]
+            print("\n", type(_msg))
+        return _msg
 
     def process_request(self, request=None, **kwargs):
         # _msg = self.credential_constructor(
         #    user_id=_session_info["user_id"], request=request
         # )
 
+        print("\n-------------Credential endpoint Requests---------------\n", request)
+
+        tokenAuthResult = self.verify_token_and_authentication(request)
+        if "error" in tokenAuthResult:
+            return tokenAuthResult
+
+        allowed, client_id = tokenAuthResult
+        if not isinstance(allowed, bool):
+            return allowed
+
+        if not allowed:
+            return self.error_cls(
+                error="invalid_token", error_description="Access not granted"
+            )
+
+        if "format" in request and not ("vct" in request or "doctype" in request):
+            return {
+                "response_args": {
+                    "c_nonce": rndstr(),
+                    "c_nonce_expires_in": 86400,
+                    "error": "invalid_credential_request",
+                    "error_description": "Missing doctype or vct",
+                },
+                "client_id": client_id,
+            }
+
         if "credential_requests" in request:
-            credentials, client_id = self.credentialReq(request)
-        else:
-            credentials, client_id = self.singleCredential(request)
+            for credential in request["credential_requests"]:
+                if "proof" not in credential:
+                    return {
+                        "response_args": {
+                            "c_nonce": rndstr(),
+                            "c_nonce_expires_in": 86400,
+                            "error": "invalid_proof",
+                            "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
+                        },
+                        "client_id": client_id,
+                    }
+
+                if "oidc_config" not in request:
+                    return {
+                        "response_args": {
+                            "c_nonce": rndstr(),
+                            "c_nonce_expires_in": 86400,
+                            "error": "invalid_credential_request",
+                            "error_description": "Internal missing oidc config",
+                        },
+                        "client_id": client_id,
+                    }
+
+        req = request
+
+        if (
+            "credential_requests" not in request
+            and "format" in request
+            and "doctype" in request
+            and "proof" in request
+        ):
+            credential_json = {
+                "format": request["format"],
+                "doctype": request["doctype"],
+                "proof": request["proof"],
+            }
+
+            req = {"credential_requests": [credential_json]}
+            request.pop("format")
+            request.pop("doctype")
+            request.pop("proof")
+
+            request.update(req)
+
+            print("\n Req: \n", req)
+
+        elif (
+            "credential_requests" not in request
+            and "format" in request
+            and "vct" in request
+            and "proof" in request
+        ):
+            credential_json = {
+                "format": request["format"],
+                "vct": request["vct"],
+                "proof": request["proof"],
+            }
+
+            req = {"credential_requests": [credential_json]}
+            request.pop("format")
+            request.pop("vct")
+            request.pop("proof")
+
+            request.update(req)
+
+        elif (
+            "credential_requests" not in request
+            and "format" not in request
+            and "credential_identifier" in request
+            and "proof" in request
+        ):
+            credential_json = {
+                "format": request["format"],
+                "credential_identifier": request["credential_identifier"],
+                "proof": request["proof"],
+            }
+
+            req = {"credential_requests": [credential_json]}
+            request.pop("format")
+            request.pop("credential_identifier")
+            request.pop("proof")
+
+            request.update(req)
+
+        elif "credential_requests" not in request:
+            return {
+                "response_args": {
+                    "c_nonce": rndstr(),
+                    "c_nonce_expires_in": 86400,
+                    "error": "invalid_credential_request",
+                    "error_description": "Missing or mismatched data",
+                },
+                "client_id": client_id,
+            }
+
+        credentials = self.credentialReq(request, client_id)
 
         # credentials, client_id = self.credentialReq(request)
         _resp = {
@@ -496,4 +483,5 @@ class Credential(UserInfo):
         _resp.update(credentials)
 
         logger.info("Response: ", _resp)
+
         return {"response_args": _resp, "client_id": client_id}
