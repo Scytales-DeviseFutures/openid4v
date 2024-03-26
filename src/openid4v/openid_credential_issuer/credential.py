@@ -330,9 +330,7 @@ class Credential(UserInfo):
 
         json_data = json.dumps(data)
         headers = {"Content-Type": "application/json"}
-        _msg = requests.post(
-            redirect_uri, data=json_data, headers=headers, verify=False
-        ).json()
+        _msg = requests.post(redirect_uri, data=json_data, headers=headers).json()
 
         print("\n---------------_MSG------------\n", _msg)
 
