@@ -8,6 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class Notification(UserInfo):
+    endpoint_name = "notification_endpoint"
+    name = "notification"
+
     def __init__(self, upstream_get, conf=None, **kwargs):
         UserInfo.__init__(self, upstream_get, conf=conf, **kwargs)
 
