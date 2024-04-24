@@ -59,6 +59,11 @@ class Notification(UserInfo):
 
         print("\n-------------Notification endpoint Request---------------\n", request)
 
+        if "notification_id" not in request or "event" not in request:
+            return self.error_cls(error="invalid_notification_id")
+
+        notification_id = request["notification_id"]
+
         tokenAuthResult = self.verify_token_and_authentication(request)
         if "error" in tokenAuthResult:
             return tokenAuthResult
@@ -82,4 +87,7 @@ class Notification(UserInfo):
                 error="invalid_token", error_description="Invalid Token"
             )
 
-        return ("", 204)
+        if notification_id not in _session_info["grant"].notification_ids:
+            return self.error_cls(error="invalid_notification_id")
+
+        return make_response("", 204)
