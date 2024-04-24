@@ -340,7 +340,27 @@ class Credential(UserInfo):
 
         if len(_msg["credential_responses"]) == 1:
             _msg = _msg["credential_responses"][0]
-            print("\n", type(_msg))
+
+        if "credential" in _msg or "credential_responses" in _msg:
+            notification_id = rndstr()
+            transaction_id = rndstr()
+            _session_info["grant"].add_notification(notification_id)
+            _session_info["grant"].add_transaction(transaction_id)
+            print(
+                "\n-----Notification IDs----\n", _session_info["grant"].notification_ids
+            )
+            print(
+                "\n-----Transaction IDs----\n", _session_info["grant"].transaction_ids
+            )
+
+            _msg.update({"notification_id": notification_id})
+            _msg.update({"transaction_id": transaction_id})
+
+        else:
+            transaction_id = rndstr()
+            _session_info["grant"].add_transaction(transaction_id)
+            _msg.update({"transaction_id": transaction_id})
+
         return _msg
 
     def process_request(self, request=None, **kwargs):
@@ -387,6 +407,28 @@ class Credential(UserInfo):
                         "client_id": client_id,
                     }
 
+                elif "proof" in credential:
+                    if "proof_type" not in credential["proof"]:
+                        return {
+                            "response_args": {
+                                "c_nonce": rndstr(),
+                                "c_nonce_expires_in": 86400,
+                                "error": "invalid_proof",
+                                "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
+                            },
+                            "client_id": client_id,
+                        }
+                    if "jwt" not in credential["proof"]:
+                        return {
+                            "response_args": {
+                                "c_nonce": rndstr(),
+                                "c_nonce_expires_in": 86400,
+                                "error": "invalid_proof",
+                                "error_description": "Only JWT supported at this time",
+                            },
+                            "client_id": client_id,
+                        }
+
                 if "oidc_config" not in request:
                     return {
                         "response_args": {
@@ -397,6 +439,38 @@ class Credential(UserInfo):
                         },
                         "client_id": client_id,
                     }
+
+        elif "proof" not in request:
+            return {
+                "response_args": {
+                    "c_nonce": rndstr(),
+                    "c_nonce_expires_in": 86400,
+                    "error": "invalid_proof",
+                    "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
+                },
+                "client_id": client_id,
+            }
+        elif "proof" in request:
+            if "proof_type" not in request["proof"]:
+                return {
+                    "response_args": {
+                        "c_nonce": rndstr(),
+                        "c_nonce_expires_in": 86400,
+                        "error": "invalid_proof",
+                        "error_description": "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.",
+                    },
+                    "client_id": client_id,
+                }
+            if "jwt" not in request["proof"]:
+                return {
+                    "response_args": {
+                        "c_nonce": rndstr(),
+                        "c_nonce_expires_in": 86400,
+                        "error": "invalid_proof",
+                        "error_description": "Only JWT supported at this time",
+                    },
+                    "client_id": client_id,
+                }
 
         req = request
 
