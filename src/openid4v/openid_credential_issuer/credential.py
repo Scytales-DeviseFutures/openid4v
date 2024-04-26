@@ -341,25 +341,52 @@ class Credential(UserInfo):
         if len(_msg["credential_responses"]) == 1:
             _msg = _msg["credential_responses"][0]
 
+        _nonce = {
+            "c_nonce": rndstr(),
+            "c_nonce_expires_in": 86400,
+        }
+
+        _msg.update(_nonce)
+
         if "credential" in _msg or "credential_responses" in _msg:
+
             notification_id = rndstr()
-            transaction_id = rndstr()
+            # transaction_id = rndstr()
             _session_info["grant"].add_notification(notification_id)
-            _session_info["grant"].add_transaction(transaction_id)
-            print(
+            # _session_info["grant"].add_transaction(transaction_id)
+            """ print(
                 "\n-----Notification IDs----\n", _session_info["grant"].notification_ids
             )
             print(
                 "\n-----Transaction IDs----\n", _session_info["grant"].transaction_ids
-            )
+            ) """
 
             _msg.update({"notification_id": notification_id})
-            _msg.update({"transaction_id": transaction_id})
+            # _msg.update({"transaction_id": transaction_id})
+
+            if (
+                data["credential_requests"][0]["doctype"]
+                == "eu.europa.ec.eudiw.pseudonym.age_over_18.1"
+                and "transaction_id" not in request
+            ):
+                transaction_id = rndstr()
+                _session_info["grant"].add_transaction(transaction_id, None)
+                _msg = {
+                    "transaction_id": transaction_id,
+                    "c_nonce": rndstr(),
+                    "c_nonce_expires_in": 86400,
+                }
+
+            if "transaction_id" in request:
+                _session_info["grant"].add_transaction(request["transaction_id"], _msg)
 
         else:
-            transaction_id = rndstr()
-            _session_info["grant"].add_transaction(transaction_id)
-            _msg.update({"transaction_id": transaction_id})
+            if "transaction_id" in request:
+                _msg.update({"transaction_id": request["transaction_id"]})
+            else:
+                transaction_id = rndstr()
+                _session_info["grant"].add_transaction(transaction_id, None)
+                _msg.update({"transaction_id": transaction_id})
 
         return _msg
 
@@ -544,15 +571,9 @@ class Credential(UserInfo):
                 "client_id": client_id,
             }
 
-        credentials = self.credentialReq(request, client_id)
+        _resp = self.credentialReq(request, client_id)
 
         # credentials, client_id = self.credentialReq(request)
-        _resp = {
-            "c_nonce": rndstr(),
-            "c_nonce_expires_in": 86400,
-        }
-
-        _resp.update(credentials)
 
         logger.info("Response: ", _resp)
 

@@ -87,6 +87,24 @@ class Deferred_Credential(UserInfo):
             )
 
         if transaction_id not in _session_info["grant"].transaction_ids:
-            return self.error_cls(error="invalid_transaction_id")
+            _resp = {
+                "error": "invalid_transaction_id",
+            }
+            return {"response_args": _resp, "client_id": client_id}
 
-        return make_response("", 204)
+        print(
+            "\n-----Deferred Endpoint transaction_ids----\n",
+            _session_info["grant"].transaction_ids,
+        )
+
+        if _session_info["grant"].transaction_ids[transaction_id]:
+            _resp = _session_info["grant"].transaction_ids[transaction_id]
+
+            _session_info["grant"].transaction_ids.pop(transaction_id)
+        else:
+            _resp = {"error": "issuance_pending", "interval": 300}
+            return {"response_args": _resp, "client_id": client_id}
+
+        return {"response_args": _resp, "client_id": client_id}
+
+        # return make_response("", 204)
