@@ -56,8 +56,6 @@ class Deferred_Credential(UserInfo):
         return True, _session_info["client_id"]
 
     def process_request(self, request=None, **kwargs):
-        print("\n-------------Deferred endpoint Request---------------\n", request)
-
         if "transaction_id" not in request:
             return self.error_cls(error="invalid_notification_id")
 
@@ -91,11 +89,6 @@ class Deferred_Credential(UserInfo):
                 "error": "invalid_transaction_id",
             }
             return {"response_args": _resp, "client_id": client_id}
-
-        print(
-            "\n-----Deferred Endpoint transaction_ids----\n",
-            _session_info["grant"].transaction_ids,
-        )
 
         if _session_info["grant"].transaction_ids[transaction_id]:
             _resp = _session_info["grant"].transaction_ids[transaction_id]

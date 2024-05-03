@@ -57,8 +57,6 @@ class Notification(UserInfo):
 
     def process_request(self, request=None, **kwargs):
 
-        print("\n-------------Notification endpoint Request---------------\n", request)
-
         if "notification_id" not in request or "event" not in request:
             return self.error_cls(error="invalid_notification_id")
 
