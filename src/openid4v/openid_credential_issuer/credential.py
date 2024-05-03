@@ -289,8 +289,6 @@ class Credential(UserInfo):
         return device_key
 
     def credentialReq(self, request, client_id):
-        print("\n Inside credentialReq", request["credential_requests"])
-
         try:
             _mngr = self.upstream_get("context").session_manager
             _session_info = _mngr.get_session_info_by_token(
@@ -316,23 +314,14 @@ class Credential(UserInfo):
         # doc_country = request["doctype"] + "." + info[0]
         redirect_uri = request["oidc_config"].credential_urls["dynamic"]
 
-        print(
-            "\n---------Credential Request-------------\n",
-            request["credential_requests"],
-        )
-
         data = {
             "credential_requests": request["credential_requests"],
             "user_id": user_id,
         }
 
-        print("\nData:\n", data)
-
         json_data = json.dumps(data)
         headers = {"Content-Type": "application/json"}
         _msg = requests.post(redirect_uri, data=json_data, headers=headers).json()
-
-        print("\n---------------_MSG------------\n", _msg)
 
         """ credentials = {"credential_responses": []}
         for credential in _msg:
@@ -354,28 +343,23 @@ class Credential(UserInfo):
             # transaction_id = rndstr()
             _session_info["grant"].add_notification(notification_id)
             # _session_info["grant"].add_transaction(transaction_id)
-            """ print(
-                "\n-----Notification IDs----\n", _session_info["grant"].notification_ids
-            )
-            print(
-                "\n-----Transaction IDs----\n", _session_info["grant"].transaction_ids
-            ) """
 
             _msg.update({"notification_id": notification_id})
             # _msg.update({"transaction_id": transaction_id})
 
-            if (
-                data["credential_requests"][0]["doctype"]
-                == "eu.europa.ec.eudiw.pseudonym.age_over_18.1"
-                and "transaction_id" not in request
-            ):
-                transaction_id = rndstr()
-                _session_info["grant"].add_transaction(transaction_id, None)
-                _msg = {
-                    "transaction_id": transaction_id,
-                    "c_nonce": rndstr(),
-                    "c_nonce_expires_in": 86400,
-                }
+            if "doctype" in data["credential_requests"][0]:
+                if (
+                    data["credential_requests"][0]["doctype"]
+                    == "eu.europa.ec.eudiw.pseudonym.age_over_18.1"
+                    and "transaction_id" not in request
+                ):
+                    transaction_id = rndstr()
+                    _session_info["grant"].add_transaction(transaction_id, None)
+                    _msg = {
+                        "transaction_id": transaction_id,
+                        "c_nonce": rndstr(),
+                        "c_nonce_expires_in": 86400,
+                    }
 
             if "transaction_id" in request:
                 _session_info["grant"].add_transaction(request["transaction_id"], _msg)
@@ -394,8 +378,6 @@ class Credential(UserInfo):
         # _msg = self.credential_constructor(
         #    user_id=_session_info["user_id"], request=request
         # )
-
-        print("\n-------------Credential endpoint Requests---------------\n", request)
 
         tokenAuthResult = self.verify_token_and_authentication(request)
         if "error" in tokenAuthResult:
@@ -519,8 +501,6 @@ class Credential(UserInfo):
             request.pop("proof")
 
             request.update(req)
-
-            print("\n Req: \n", req)
 
         elif (
             "credential_requests" not in request
