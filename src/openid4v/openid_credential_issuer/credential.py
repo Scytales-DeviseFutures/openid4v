@@ -295,9 +295,13 @@ class Credential(UserInfo):
                 request["access_token"], grant=True, handler_key="access_token"
             )
         except (KeyError, ValueError):
-            return self.error_cls(
-                error="invalid_token", error_description="Invalid Token"
-            )
+            _resp = {
+                "error": "invalid_token",
+                "error_description": "Invalid Token",
+                "c_nonce": rndstr(),
+                "c_nonce_expires_in": 86400,
+            }
+            return _resp
 
         for credential in request["credential_requests"]:
             jwt_encoded = credential["proof"]["jwt"]
@@ -327,8 +331,9 @@ class Credential(UserInfo):
         for credential in _msg:
             credentials["credential_responses"].append({credential: _msg[credential]}) """
 
-        if len(_msg["credential_responses"]) == 1:
-            _msg = _msg["credential_responses"][0]
+        if "credential_responses" in _msg:
+            if len(_msg["credential_responses"]) == 1:
+                _msg = _msg["credential_responses"][0]
 
         _nonce = {
             "c_nonce": rndstr(),
@@ -367,10 +372,19 @@ class Credential(UserInfo):
         else:
             if "transaction_id" in request:
                 _msg.update({"transaction_id": request["transaction_id"]})
-            else:
+            elif "error" in _msg and _msg["error"] == "Pending":
                 transaction_id = rndstr()
                 _session_info["grant"].add_transaction(transaction_id, None)
                 _msg.update({"transaction_id": transaction_id})
+                _msg.pop("error")
+            else:
+                _resp = {
+                    "error": "invalid_credential_request",
+                    "error_description": "Couldn't generate credential",
+                    "c_nonce": rndstr(),
+                    "c_nonce_expires_in": 86400,
+                }
+                return _resp
 
         return _msg
 
@@ -388,9 +402,15 @@ class Credential(UserInfo):
             return allowed
 
         if not allowed:
-            return self.error_cls(
-                error="invalid_token", error_description="Access not granted"
-            )
+            return {
+                "response_args": {
+                    "c_nonce": rndstr(),
+                    "c_nonce_expires_in": 86400,
+                    "error": "invalid_token",
+                    "error_description": "Access not granted",
+                },
+                "client_id": client_id,
+            }
 
         if "format" in request and not ("vct" in request or "doctype" in request):
             return {
