@@ -95,7 +95,7 @@ class Deferred_Credential(UserInfo):
 
             _session_info["grant"].transaction_ids.pop(transaction_id)
         else:
-            _resp = {"error": "issuance_pending", "interval": 300}
+            _resp = {"error": "issuance_pending", "interval": 30}
             return {"response_args": _resp, "client_id": client_id}
 
         return {"response_args": _resp, "client_id": client_id}
