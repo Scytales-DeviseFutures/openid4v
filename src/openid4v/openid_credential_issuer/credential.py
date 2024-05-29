@@ -27,6 +27,7 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
+import cbor2
 
 
 logger = logging.getLogger(__name__)
@@ -288,6 +289,44 @@ class Credential(UserInfo):
 
         return device_key
 
+    def pKfromCWT(self, cwt_encoded):
+        decoded_cwt = cbor2.loads(base64.urlsafe_b64decode(cwt_encoded))
+
+        if isinstance(decoded_cwt, cbor2.CBORTag):
+            # print("CBORTag:", decoded_cwt)
+            payload = decoded_cwt.value.value
+        else:
+            raise ValueError("Invalid CWT structure")
+
+        cose_key_map = {1: ec.SECP256R1(), 2: ec.SECP384R1(), 3: ec.SECP521R1()}
+
+        cose_key = cbor2.loads(payload[0])["COSE_Key"]
+
+        curve = cose_key_map[cose_key[-1]]
+        x = cose_key[-2]
+        y = cose_key[-3]
+
+        # Create a public key from the bytes
+        public_numbers = ec.EllipticCurvePublicNumbers(
+            x=int.from_bytes(x, "big"),
+            y=int.from_bytes(y, "big"),
+            curve=curve,
+        )
+
+        public_key = public_numbers.public_key()
+
+        # Serialize the public key to PEM format
+        public_key_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        # Encode the public key in base64url format
+
+        device_key = base64.urlsafe_b64encode(public_key_pem).decode("utf-8")
+
+        return device_key
+
     def credentialReq(self, request, client_id):
         try:
             _mngr = self.upstream_get("context").session_manager
@@ -304,8 +343,22 @@ class Credential(UserInfo):
             return _resp
 
         for credential in request["credential_requests"]:
-            jwt_encoded = credential["proof"]["jwt"]
-            device_key = self.pKfromJWK(jwt_encoded)
+            if "jwt" in credential["proof"]:
+                jwt_encoded = credential["proof"]["jwt"]
+                device_key = self.pKfromJWK(jwt_encoded)
+            elif "cwt" in credential["proof"]:
+                cwt_encoded = credential["proof"]["cwt"]
+                try:
+                    device_key = self.pKfromCWT(cwt_encoded)
+                except:
+                    _resp = {
+                        "error": "invalid_proof",
+                        "error_description": "Couldn't read public key from CWT",
+                        "c_nonce": rndstr(),
+                        "c_nonce_expires_in": 86400,
+                    }
+                    return _resp
+
             if "error" in device_key:
                 return device_key, client_id
             credential["device_publickey"] = device_key
@@ -447,13 +500,39 @@ class Credential(UserInfo):
                             },
                             "client_id": client_id,
                         }
-                    if "jwt" not in credential["proof"]:
+                    """ if "jwt" not in credential["proof"]:
                         return {
                             "response_args": {
                                 "c_nonce": rndstr(),
                                 "c_nonce_expires_in": 86400,
                                 "error": "invalid_proof",
-                                "error_description": "Only JWT supported at this time",
+                                "error_description": "Only JWT and CWT supported at this time",
+                            },
+                            "client_id": client_id,
+                        } """
+                    if (
+                        credential["proof"]["proof_type"] == "jwt"
+                        and "jwt" not in credential["proof"]
+                    ):
+                        return {
+                            "response_args": {
+                                "c_nonce": rndstr(),
+                                "c_nonce_expires_in": 86400,
+                                "error": "invalid_proof",
+                                "error_description": "Missing jwt field",
+                            },
+                            "client_id": client_id,
+                        }
+                    if (
+                        credential["proof"]["proof_type"] == "cwt"
+                        and "cwt" not in credential["proof"]
+                    ):
+                        return {
+                            "response_args": {
+                                "c_nonce": rndstr(),
+                                "c_nonce_expires_in": 86400,
+                                "error": "invalid_proof",
+                                "error_description": "Missing cwt field",
                             },
                             "client_id": client_id,
                         }
@@ -490,13 +569,39 @@ class Credential(UserInfo):
                     },
                     "client_id": client_id,
                 }
-            if "jwt" not in request["proof"]:
+            """ if "jwt" not in request["proof"]:
                 return {
                     "response_args": {
                         "c_nonce": rndstr(),
                         "c_nonce_expires_in": 86400,
                         "error": "invalid_proof",
-                        "error_description": "Only JWT supported at this time",
+                        "error_description": "Only JWT and CWT supported at this time",
+                    },
+                    "client_id": client_id,
+                } """
+            if (
+                request["proof"]["proof_type"] == "jwt"
+                and "jwt" not in request["proof"]
+            ):
+                return {
+                    "response_args": {
+                        "c_nonce": rndstr(),
+                        "c_nonce_expires_in": 86400,
+                        "error": "invalid_proof",
+                        "error_description": "Missing jwt field",
+                    },
+                    "client_id": client_id,
+                }
+            if (
+                request["proof"]["proof_type"] == "cwt"
+                and "cwt" not in request["proof"]
+            ):
+                return {
+                    "response_args": {
+                        "c_nonce": rndstr(),
+                        "c_nonce_expires_in": 86400,
+                        "error": "invalid_proof",
+                        "error_description": "Missing cwt field",
                     },
                     "client_id": client_id,
                 }
