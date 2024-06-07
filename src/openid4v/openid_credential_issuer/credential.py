@@ -28,6 +28,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
 import cbor2
+from pycose.messages import Sign1Message
+from pycose.keys import CoseKey
 
 
 logger = logging.getLogger(__name__)
@@ -290,7 +292,7 @@ class Credential(UserInfo):
         return device_key
 
     def pKfromCWT(self, cwt_encoded):
-        decoded_cwt = cbor2.loads(base64.urlsafe_b64decode(cwt_encoded))
+        decoded_cwt = cbor2.loads(base64.urlsafe_b64decode(cwt_encoded + "=="))
 
         if isinstance(decoded_cwt, cbor2.CBORTag):
             # print("CBORTag:", decoded_cwt)
@@ -298,13 +300,27 @@ class Credential(UserInfo):
         else:
             raise ValueError("Invalid CWT structure")
 
+        sign1_message = Sign1Message.decode(cbor2.dumps(decoded_cwt.value))
+        cose_key_dict = sign1_message.phdr["COSE_Key"]
+
+        cose_key_1 = CoseKey.from_dict(cose_key_dict)
+
+        payload = sign1_message.payload
+        signature = sign1_message.signature
+
+        # Verify the signature
+        sign1_message.key = cose_key_1
+        valid = sign1_message.verify_signature()
+
+        print("\n----Valid----\n", valid)
+        if not valid:
+            raise ValueError("Invalid CWT signature")
+
         cose_key_map = {1: ec.SECP256R1(), 2: ec.SECP384R1(), 3: ec.SECP521R1()}
 
-        cose_key = cbor2.loads(payload[0])["COSE_Key"]
-
-        curve = cose_key_map[cose_key[-1]]
-        x = cose_key[-2]
-        y = cose_key[-3]
+        curve = cose_key_map[cose_key_dict[-1]]
+        x = cose_key_dict[-2]
+        y = cose_key_dict[-3]
 
         # Create a public key from the bytes
         public_numbers = ec.EllipticCurvePublicNumbers(
@@ -350,10 +366,10 @@ class Credential(UserInfo):
                 cwt_encoded = credential["proof"]["cwt"]
                 try:
                     device_key = self.pKfromCWT(cwt_encoded)
-                except:
+                except Exception as e:
                     _resp = {
                         "error": "invalid_proof",
-                        "error_description": "Couldn't read public key from CWT",
+                        "error_description": str(e),
                         "c_nonce": rndstr(),
                         "c_nonce_expires_in": 86400,
                     }
