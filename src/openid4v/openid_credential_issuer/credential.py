@@ -302,6 +302,8 @@ class Credential(UserInfo):
 
         sign1_message = Sign1Message.decode(cbor2.dumps(decoded_cwt.value))
         cose_key_dict = sign1_message.phdr["COSE_Key"]
+        if isinstance(cose_key_dict, bytes):
+            cose_key_dict = cbor2.loads(cose_key_dict)
 
         cose_key_1 = CoseKey.from_dict(cose_key_dict)
 
