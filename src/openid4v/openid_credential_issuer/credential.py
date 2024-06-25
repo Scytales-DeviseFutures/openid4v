@@ -426,7 +426,7 @@ class Credential(UserInfo):
             if "doctype" in data["credential_requests"][0]:
                 if (
                     data["credential_requests"][0]["doctype"]
-                    == "eu.europa.ec.eudiw.pseudonym.age_over_18.deferred_endpoint"
+                    == "eu.europa.ec.eudi.pseudonym.age_over_18.deferred_endpoint"
                     and "transaction_id" not in request
                 ):
                     transaction_id = rndstr()
