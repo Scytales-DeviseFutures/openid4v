@@ -1,4 +1,5 @@
 """Implements the service that talks to the Access Token endpoint."""
+
 import logging
 from typing import Optional
 from typing import Union
@@ -39,7 +40,9 @@ class Token(Endpoint):
     def __init__(self, upstream_get, conf=None, **kwargs):
         Endpoint.__init__(self, upstream_get, conf=conf, **kwargs)
 
-    def _process_request(self, request: Optional[Union[Message, dict]] = None, **kwargs):
+    def _process_request(
+        self, request: Optional[Union[Message, dict]] = None, **kwargs
+    ):
         """
 
         :param request:
@@ -51,12 +54,16 @@ class Token(Endpoint):
         LOGGER.debug("Access Token")
 
         if request["grant_type"] != "authorization_code":
-            return self.error_cls(error="invalid_request", error_description="Unknown grant_type")
+            return self.error_cls(
+                error="invalid_request", error_description="Unknown grant_type"
+            )
 
         try:
             _access_code = request["code"].replace(" ", "+")
         except KeyError:  # Missing code parameter - absolutely fatal
-            return self.error_cls(error="invalid_request", error_description="Missing code")
+            return self.error_cls(
+                error="invalid_request", error_description="Missing code"
+            )
 
         _session_info = _mngr.get_session_info_by_token(
             _access_code, grant=True, handler_key="authorization_code"
@@ -65,11 +72,16 @@ class Token(Endpoint):
         if client_id != request["client_id"]:
             LOGGER.debug("{} owner of token".format(client_id))
             LOGGER.warning("Client using token it was not given")
-            return self.error_cls(error="invalid_grant", error_description="Wrong client")
+            return self.error_cls(
+                error="invalid_grant", error_description="Wrong client"
+            )
 
         _cinfo = self.upstream_get("context").cdb.get(client_id)
 
-        if "resource_indicators" in _cinfo and "access_token" in _cinfo["resource_indicators"]:
+        if (
+            "resource_indicators" in _cinfo
+            and "access_token" in _cinfo["resource_indicators"]
+        ):
             resource_indicators_config = _cinfo["resource_indicators"]["access_token"]
         else:
             resource_indicators_config = self.kwargs.get("resource_indicators", None)
@@ -228,7 +240,9 @@ class Token(Endpoint):
             if _exp_in:
                 token.expires_at = utc_time_sans_frac() + _exp_in
 
-        _context.session_manager.set(_context.session_manager.unpack_session_key(session_id), grant)
+        _context.session_manager.set(
+            _context.session_manager.unpack_session_key(session_id), grant
+        )
 
         return token
 

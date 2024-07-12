@@ -21,15 +21,11 @@ class WalletProviderClaims(Claims):
         "grant_types_supported": ["urn:ietf:params:oauth:grant-type:jwt-bearer"],
         "response_types_supported": ["vp_token"],
         "vp_formats_supported": {
-            "jwt_vp_json": {
-                "alg_values_supported": get_signing_algs
-            },
-            "jwt_vc_json": {
-                "alg_values_supported": get_signing_algs
-            }
+            "jwt_vp_json": {"alg_values_supported": get_signing_algs},
+            "jwt_vc_json": {"alg_values_supported": get_signing_algs},
         },
         "request_object_signing_alg_values_supported": get_signing_algs,
-        "presentation_definition_uri_supported": False
+        "presentation_definition_uri_supported": False,
     }
 
     def provider_info(self, supports):
@@ -45,54 +41,64 @@ class WalletProviderClaims(Claims):
 class TestWalletInstanceDiscovery(object):
     def __call__(self, *args, **kwargs) -> dict:
         return {
-        #     "authorization_endpoint": "eudiw:",
-        #     "response_types_supported": [
-        #         "vp_token"
-        #     ],
-        #     "response_modes_supported": [
-        #         "form_post.jwt"
-        #     ],
-        #     "vp_formats_supported": {
-        #         "vc+sd-jwt": {
-        #             "sd-jwt_alg_values": [
-        #                 "ES256",
-        #                 "ES384"
-        #             ]
-        #         }
-        #     },
-        #     "request_object_signing_alg_values_supported": [
-        #         "ES256"
-        #     ],
-        #     "presentation_definition_uri_supported": False,
-            "aal": "https://trust-list.eu/aal/high"}
+            #     "authorization_endpoint": "eudiw:",
+            #     "response_types_supported": [
+            #         "vp_token"
+            #     ],
+            #     "response_modes_supported": [
+            #         "form_post.jwt"
+            #     ],
+            #     "vp_formats_supported": {
+            #         "vc+sd-jwt": {
+            #             "sd-jwt_alg_values": [
+            #                 "ES256",
+            #                 "ES384"
+            #             ]
+            #         }
+            #     },
+            #     "request_object_signing_alg_values_supported": [
+            #         "ES256"
+            #     ],
+            #     "presentation_definition_uri_supported": False,
+            "aal": "https://trust-list.eu/aal/high"
+        }
 
 
 class WalletProvider(ServerEntity):
-    name = 'wallet_provider'
+    name = "wallet_provider"
     parameter = {"endpoint": [Endpoint], "context": EndpointContext}
     claims_class = WalletProviderClaims
 
     def __init__(
-            self,
-            config: Optional[Union[dict, ASConfiguration]] = None,
-            upstream_get: Optional[Callable] = None,
-            keyjar: Optional[KeyJar] = None,
-            cwd: Optional[str] = "",
-            cookie_handler: Optional[Any] = None,
-            httpc: Optional[Any] = None,
-            httpc_params: Optional[dict] = None,
-            entity_id: Optional[str] = "",
-            key_conf: Optional[dict] = None
+        self,
+        config: Optional[Union[dict, ASConfiguration]] = None,
+        upstream_get: Optional[Callable] = None,
+        keyjar: Optional[KeyJar] = None,
+        cwd: Optional[str] = "",
+        cookie_handler: Optional[Any] = None,
+        httpc: Optional[Any] = None,
+        httpc_params: Optional[dict] = None,
+        entity_id: Optional[str] = "",
+        key_conf: Optional[dict] = None,
     ):
-        ServerEntity.__init__(self, config=config, upstream_get=upstream_get, keyjar=keyjar,
-                              cwd=cwd, cookie_handler=cookie_handler, httpc=httpc,
-                              httpc_params=httpc_params, entity_id=entity_id, key_conf=key_conf)
+        ServerEntity.__init__(
+            self,
+            config=config,
+            upstream_get=upstream_get,
+            keyjar=keyjar,
+            cwd=cwd,
+            cookie_handler=cookie_handler,
+            httpc=httpc,
+            httpc_params=httpc_params,
+            entity_id=entity_id,
+            key_conf=key_conf,
+        )
         self.wallet_instance_discovery = execute(
-            config.get("wallet_instance_discovery",
-                       {
-                           "class": TestWalletInstanceDiscovery,
-                           "kwargs" : {}
-                       }))
+            config.get(
+                "wallet_instance_discovery",
+                {"class": TestWalletInstanceDiscovery, "kwargs": {}},
+            )
+        )
 
     def get_metadata(self, *args):
         # static ! Should this be done dynamically ?

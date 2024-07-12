@@ -17,7 +17,7 @@ CLI_KEY = init_key_jar(
 )
 
 
-class TestAuthorizationRequest():
+class TestAuthorizationRequest:
 
     @pytest.fixture(autouse=True)
     def create_client(self):
@@ -38,25 +38,28 @@ class TestAuthorizationRequest():
                 },
                 "pkce": {
                     "function": "idpyoidc.client.oauth2.add_on.pkce.add_support",
-                    "kwargs": {"code_challenge_length": 64, "code_challenge_method": "S256"},
+                    "kwargs": {
+                        "code_challenge_length": 64,
+                        "code_challenge_method": "S256",
+                    },
                 },
                 "dpop": {
                     "function": "idpyoidc.client.oauth2.add_on.dpop.add_support",
                     "kwargs": {"dpop_signing_alg_values_supported": ["ES256", "ES512"]},
-                }
+                },
             },
             "services": {
                 "authorization": {"class": "openid4v.client.pid_eaa.Authorization"},
                 "access_token": {"class": "openid4v.client.pid_eaa.AccessToken"},
-                "credential": {"class": "openid4v.client.pid_eaa.Credential"}
+                "credential": {"class": "openid4v.client.pid_eaa.Credential"},
             },
             "provider_info": {
                 "authorization_endpoint": "https://issuer.example.com/auth",
                 "token_endpoint": "https://issuer.example.com/token",
                 "credential_endpoint": "https://issuer.example.com/credential",
                 "dpop_signing_alg_values_supported": ["RS256", "ES256"],
-                "pushed_authorization_request_endpoint": "https://issuer.example.com/push"
-            }
+                "pushed_authorization_request_endpoint": "https://issuer.example.com/push",
+            },
         }
         self.entity = Client(keyjar=CLI_KEY, config=config)
 
@@ -69,19 +72,21 @@ class TestAuthorizationRequest():
                     "type": "openid_credential",
                     "format": "jwt_vc_json",
                     "credential_definition": {
-                        "type": [
-                            "VerifiableCredential",
-                            "UniversityDegreeCredential"
-                        ]
-                    }
+                        "type": ["VerifiableCredential", "UniversityDegreeCredential"]
+                    },
                 }
-            ]
+            ],
         }
         with responses.RequestsMock() as rsps:
-            _resp = {"request_uri": "urn:example:bwc4JK-ESC0w8acc191e-Y1LTC2", "expires_in": 3600}
+            _resp = {
+                "request_uri": "urn:example:bwc4JK-ESC0w8acc191e-Y1LTC2",
+                "expires_in": 3600,
+            }
             rsps.add(
                 "POST",
-                auth_service.upstream_get("context").provider_info["pushed_authorization_request_endpoint"],
+                auth_service.upstream_get("context").provider_info[
+                    "pushed_authorization_request_endpoint"
+                ],
                 body=json.dumps(_resp),
                 status=200,
             )
@@ -89,6 +94,6 @@ class TestAuthorizationRequest():
             _req = auth_service.construct(request_args=req_args, state="state_id")
 
         assert set(_req.keys()) == {"request_uri", "response_type", "client_id"}
-        _item = self.entity.context.cstate.get('state_id')
-        assert _item['response_type'] == "code"
-        assert _item['redirect_uri'] == 'https://example.com/cli/authz_cb'
+        _item = self.entity.context.cstate.get("state_id")
+        assert _item["response_type"] == "code"
+        assert _item["redirect_uri"] == "https://example.com/cli/authz_cb"

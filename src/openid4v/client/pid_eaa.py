@@ -62,9 +62,9 @@ class Authorization(FederationService):
         "scopes_supported": [],
     }
 
-    def __init__(self,
-                 upstream_get: Callable,
-                 conf: Optional[Union[dict, Configuration]] = None):
+    def __init__(
+        self, upstream_get: Callable, conf: Optional[Union[dict, Configuration]] = None
+    ):
         FederationService.__init__(self, upstream_get, conf=conf)
         if conf:
             self.certificate_issuer_id = conf.get("certificate_issuer_id")
@@ -88,7 +88,9 @@ class Authorization(FederationService):
 
     def get_endpoint(self):
         # get endpoint from the Entity Configuration
-        chains, leaf_ec = collect_trust_chains(self, entity_id=self.certificate_issuer_id)
+        chains, leaf_ec = collect_trust_chains(
+            self, entity_id=self.certificate_issuer_id
+        )
         if len(chains) == 0:
             return None
 
@@ -98,7 +100,9 @@ class Authorization(FederationService):
             return None
 
         # pick one. The authorization endpoint belongs to an OAuth2 server
-        return trust_chains[0].metadata['oauth_authorization_server']["authorization_endpoint"]
+        return trust_chains[0].metadata["oauth_authorization_server"][
+            "authorization_endpoint"
+        ]
 
     def store_auth_request(self, request_args=None, **kwargs):
         """Store the authorization request in the state DB."""
@@ -116,7 +120,7 @@ class AccessToken(access_token.AccessToken):
     _supports = {
         "token_endpoint_auth_methods_supported": get_client_authn_methods,
         "token_endpoint_auth_signing_alg_values_supported": get_signing_algs,
-        "grant_types_supported": ["authorization_code"]
+        "grant_types_supported": ["authorization_code"],
     }
 
     def __init__(self, upstream_get, conf: Optional[dict] = None, **kwargs):
@@ -137,8 +141,9 @@ class AccessToken(access_token.AccessToken):
         return self.default_authn_method
 
     def gather_verify_arguments(
-            self, response: Optional[Union[dict, Message]] = None,
-            behaviour_args: Optional[dict] = None
+        self,
+        response: Optional[Union[dict, Message]] = None,
+        behaviour_args: Optional[dict] = None,
     ):
         """
         Need to add some information before running verify()
@@ -179,8 +184,11 @@ class AccessToken(access_token.AccessToken):
 
     def update_service_context(self, resp, key: Optional[str] = "", **kwargs):
         _cstate = self.upstream_get("context").cstate
-        _ava = {k: v for k, v in resp.items() if k in {"token_type", "access_token", "c_nonce",
-                                                       "c_nonce_expires_in"}}
+        _ava = {
+            k: v
+            for k, v in resp.items()
+            if k in {"token_type", "access_token", "c_nonce", "c_nonce_expires_in"}
+        }
         _cstate.update(key, _ava)
 
 
@@ -225,12 +233,14 @@ class Credential(Service):
 
         return self.default_authn_method
 
-    def create_key_proof_JWT(self,
-                             aud: Optional[str] = "",
-                             nonce: Optional[str] = "",
-                             key: Optional[JWK] = None,
-                             sign_alg: Optional[str] = "ES256",
-                             **kwargs) -> (str, str):
+    def create_key_proof_JWT(
+        self,
+        aud: Optional[str] = "",
+        nonce: Optional[str] = "",
+        key: Optional[JWK] = None,
+        sign_alg: Optional[str] = "ES256",
+        **kwargs,
+    ) -> (str, str):
         entity_id = self.upstream_get("attribute", "entity_id")
         keyjar = self.upstream_get("attribute", "keyjar")
         if not key:
@@ -262,21 +272,25 @@ class Credential(Service):
         if not aud:
             aud = self.upstream_get("attribute", "issuer")
 
-        _jws = _signer.pack(payload,
-                            kid=key.kid,
-                            aud=aud,
-                            jws_headers={
-                                "typ": "openid4vci-proof+jwt",
-                                "jwk": key.serialize()
-                            })
+        _jws = _signer.pack(
+            payload,
+            kid=key.kid,
+            aud=aud,
+            jws_headers={"typ": "openid4vci-proof+jwt", "jwk": key.serialize()},
+        )
         return _jws
 
-    def create_proof(self,
-                     request_args: Optional[Union[Message, dict]] = None,
-                     service: Optional[Service] = None, **kwargs
-                     ):
+    def create_proof(
+        self,
+        request_args: Optional[Union[Message, dict]] = None,
+        service: Optional[Service] = None,
+        **kwargs,
+    ):
         # static for the time being
-        request_args["proof"] = {"proof_type": "jwt", "jwt": self.create_key_proof_JWT(**kwargs)}
+        request_args["proof"] = {
+            "proof_type": "jwt",
+            "jwt": self.create_key_proof_JWT(**kwargs),
+        }
         return request_args, {}
 
     def get_authn_method(self) -> str:
@@ -299,7 +313,9 @@ class Credential(Service):
             self.certificate_issuer_id = _context.issuer
 
         # get endpoint from the Entity Configuration
-        chains, leaf_ec = collect_trust_chains(self, entity_id=self.certificate_issuer_id)
+        chains, leaf_ec = collect_trust_chains(
+            self, entity_id=self.certificate_issuer_id
+        )
         if len(chains) == 0:
             return None
 
@@ -309,4 +325,6 @@ class Credential(Service):
             return None
 
         # pick one. The authorization endpoint belongs to an OAuth2 server
-        return trust_chains[0].metadata['openid_credential_issuer']["credential_endpoint"]
+        return trust_chains[0].metadata["openid_credential_issuer"][
+            "credential_endpoint"
+        ]

@@ -22,7 +22,7 @@ class OpenidCredentialIssuerClaims(Claims):
         "require_credential_response_encryption": False,
         "credentials_supported": ["vp_token"],
         "display": None,
-        "jwks": None
+        "jwks": None,
     }
 
     def provider_info(self, supports):
@@ -36,7 +36,7 @@ class OpenidCredentialIssuerClaims(Claims):
 
 
 class OpenidCredentialIssuer(ServerEntity):
-    name = 'openid_credential_issuer'
+    name = "openid_credential_issuer"
     parameter = {"endpoint": [Endpoint], "context": EndpointContext}
     claims_class = OpenidCredentialIssuerClaims
 

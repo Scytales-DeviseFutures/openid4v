@@ -18,9 +18,9 @@ class AppAttestationService(FederationService):
     service_name = "app_attestation"
     http_method = "GET"
 
-    def __init__(self,
-                 upstream_get: Callable,
-                 conf: Optional[Union[dict, Configuration]] = None):
+    def __init__(
+        self, upstream_get: Callable, conf: Optional[Union[dict, Configuration]] = None
+    ):
         if conf is None:
             conf = {}
         FederationService.__init__(self, upstream_get, conf=conf)

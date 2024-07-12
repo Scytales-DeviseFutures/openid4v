@@ -6,6 +6,6 @@ from openid4v import ServerEntity
 
 
 class Verifier(ServerEntity):
-    name = 'wallet_provider'
+    name = "wallet_provider"
     parameter = {"endpoint": [Endpoint], "context": EndpointContext}
     claims_class = oidc.Claims

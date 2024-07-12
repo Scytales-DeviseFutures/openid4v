@@ -23,7 +23,9 @@ from openid4v.message import WalletInstanceAttestationJWT
 logger = logging.getLogger(__name__)
 
 
-def verify_wallet_instance_attestation(client_assertion, keyjar, unit, attestation_class):
+def verify_wallet_instance_attestation(
+    client_assertion, keyjar, unit, attestation_class
+):
     _jws = factory(client_assertion)
     _payload = _jws.jwt.payload()
     if _payload["iss"] not in keyjar:
@@ -31,17 +33,21 @@ def verify_wallet_instance_attestation(client_assertion, keyjar, unit, attestati
             _tc = verify_trust_chains(unit, [_jws.jwt.headers["trust_chain"]])
             if _tc:
                 _entity_conf = _tc[0].verified_chain[-1]
-                keyjar.import_jwks(_entity_conf["metadata"]["wallet_provider"]["jwks"],
-                                   _entity_conf["sub"])
+                keyjar.import_jwks(
+                    _entity_conf["metadata"]["wallet_provider"]["jwks"],
+                    _entity_conf["sub"],
+                )
         else:
             chains = get_verified_trust_chains(unit, _payload["iss"])
             if chains:
                 _entity_conf = chains[0].verified_chain[-1]
-                keyjar.import_jwks(_entity_conf["metadata"]["wallet_provider"]["jwks"],
-                                   _entity_conf["sub"])
+                keyjar.import_jwks(
+                    _entity_conf["metadata"]["wallet_provider"]["jwks"],
+                    _entity_conf["sub"],
+                )
             else:
                 logger.debug(f"Found no Trust Chains for {_payload['iss']}")
-                raise NoTrustedChains(_payload['iss'])
+                raise NoTrustedChains(_payload["iss"])
 
     _verifier = JWT(keyjar)
     if attestation_class:
@@ -73,18 +79,17 @@ class ClientAssertion(ClientAuthnMethod):
     attestation_class = None
 
     def _verify(
-            self,
-            request: Optional[Union[dict, Message]] = None,
-            authorization_token: Optional[str] = None,
-            endpoint=None,  # Optional[Endpoint]
-            **kwargs,
+        self,
+        request: Optional[Union[dict, Message]] = None,
+        authorization_token: Optional[str] = None,
+        endpoint=None,  # Optional[Endpoint]
+        **kwargs,
     ):
         oas = topmost_unit(self)["oauth_authorization_server"]
         _keyjar = oas.context.keyjar
-        _wia = verify_wallet_instance_attestation(request["client_assertion"],
-                                                  _keyjar,
-                                                  self,
-                                                  self.attestation_class)
+        _wia = verify_wallet_instance_attestation(
+            request["client_assertion"], _keyjar, self, self.attestation_class
+        )
 
         # Automatic registration
         _cinfo = {k: v for k, v in _wia.items() if k not in JsonWebToken.c_param.keys()}
@@ -101,7 +106,9 @@ class ClientAssertion(ClientAuthnMethod):
         # register under both names
         if request["client_id"] != _client_id:
             oas.context.cdb[request["client_id"]] = _cinfo
-        logger.debug(f"Storing the following client information about {_client_id}: {_cinfo}")
+        logger.debug(
+            f"Storing the following client information about {_client_id}: {_cinfo}"
+        )
 
         # adding wallet key to keyjar
         _jwk = _wia["cnf"]["jwk"]
@@ -111,9 +118,9 @@ class ClientAssertion(ClientAuthnMethod):
         return {"client_id": _wia["sub"], "jwt": _wia}
 
     def is_usable(
-            self,
-            request: Optional[Union[dict, Message]] = None,
-            authorization_token: Optional[str] = None,
+        self,
+        request: Optional[Union[dict, Message]] = None,
+        authorization_token: Optional[str] = None,
     ):
         ca_type = request.get("client_assertion_type")
         if ca_type == ASSERTION_TYPE:
@@ -170,7 +177,9 @@ class ClientAssertion(ClientAuthnMethod):
 class ClientAuthenticationAttestation(ClientAuthnMethod):
     # based on https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-01.html
     tag = "client_authentication_attestation"
-    assertion_type = "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation"
+    assertion_type = (
+        "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation"
+    )
     attestation_class = {"wallet-attestation+jwt": WalletInstanceAttestationJWT}
     metadata = {}
 
@@ -187,19 +196,18 @@ class ClientAuthenticationAttestation(ClientAuthnMethod):
         return False
 
     def _verify(
-            self,
-            request: Optional[Union[dict, Message]] = None,
-            authorization_token: Optional[str] = None,
-            endpoint=None,  # Optional[Endpoint]
-            **kwargs,
+        self,
+        request: Optional[Union[dict, Message]] = None,
+        authorization_token: Optional[str] = None,
+        endpoint=None,  # Optional[Endpoint]
+        **kwargs,
     ):
         wia, pop = request["client_assertion"].split("~")
-        oas = topmost_unit(self)['oauth_authorization_server']
+        oas = topmost_unit(self)["oauth_authorization_server"]
         _keyjar = oas.context.keyjar
-        _wia = verify_wallet_instance_attestation(wia,
-                                                  _keyjar,
-                                                  self,
-                                                  self.attestation_class)
+        _wia = verify_wallet_instance_attestation(
+            wia, _keyjar, self, self.attestation_class
+        )
 
         # Should be a key in there
         _jwk = _wia["cnf"]["jwk"]

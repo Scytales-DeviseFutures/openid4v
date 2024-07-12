@@ -28,13 +28,13 @@ class PidEaaHandler(Unit):
     client_type = "oauth2"
 
     def __init__(
-            self,
-            config: Optional[Union[dict, Configuration]] = None,
-            httpc: Optional[Callable] = None,
-            httpc_params: Optional[dict] = None,
-            key_conf: Optional[dict] = None,
-            entity_id: Optional[str] = "",
-            **kwargs
+        self,
+        config: Optional[Union[dict, Configuration]] = None,
+        httpc: Optional[Callable] = None,
+        httpc_params: Optional[dict] = None,
+        key_conf: Optional[dict] = None,
+        entity_id: Optional[str] = "",
+        **kwargs
     ):
         """
 
@@ -65,12 +65,14 @@ class PidEaaHandler(Unit):
         self.httpc_params = httpc_params or config.get("httpc_params", {})
         self.kwargs = kwargs
 
-        Unit.__init__(self,
-                      httpc=self.httpc,
-                      httpc_params=self.httpc_params,
-                      key_conf=key_conf,
-                      issuer_id=entity_id,
-                      **kwargs)
+        Unit.__init__(
+            self,
+            httpc=self.httpc,
+            httpc_params=self.httpc_params,
+            key_conf=key_conf,
+            issuer_id=entity_id,
+            **kwargs
+        )
 
         if "key_conf" in self.config:
             del self.config["key_conf"]
@@ -83,18 +85,20 @@ class PidEaaHandler(Unit):
             httpc=self.httpc,
             httpc_params=self.httpc_params,
             upstream_get=self.unit_get,
-            entity_id=self.entity_id
+            entity_id=self.entity_id,
         )
         _consumer.context.issuer = issuer_id
         _consumer.context.claims.prefer["client_id"] = _consumer.entity_id
         _federation_entity = self.upstream_get("unit")["federation_entity"]
         _entity_metadata = _federation_entity.get_verified_metadata(issuer_id)
         if _entity_metadata:
-            _consumer.context.provider_info = _entity_metadata["openid_credential_issuer"]
+            _consumer.context.provider_info = _entity_metadata[
+                "openid_credential_issuer"
+            ]
         # Not doing any registration anyway
         _consumer.context.map_preferred_to_registered()
         if "dpop" in _consumer.context.add_on:
-            _cred_srv = _consumer.get_service('credential')
+            _cred_srv = _consumer.get_service("credential")
             _cred_srv.construct_extra_headers.append(dpop_header)
 
         self._consumer[issuer_id] = _consumer

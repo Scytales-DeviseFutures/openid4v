@@ -31,9 +31,9 @@ class WalletInstanceAttestation(FederationService):
     service_name = "wallet_instance_attestation"
     http_method = "POST"
 
-    def __init__(self,
-                 upstream_get: Callable,
-                 conf: Optional[Union[dict, Configuration]] = None):
+    def __init__(
+        self, upstream_get: Callable, conf: Optional[Union[dict, Configuration]] = None
+    ):
         if conf is None:
             conf = {}
         FederationService.__init__(self, upstream_get, conf=conf)
@@ -54,7 +54,9 @@ class WalletInstanceAttestation(FederationService):
         _fe.trust_chain[self.wallet_provider_id] = trust_chains
         _wallet_unit = _fe.upstream_get("unit")["wallet"]
         _wallet_unit.context.keyjar.import_jwks(
-            trust_chains[0]["metadata"]["wallet_provider"]["jwks"], self.wallet_provider_id)
+            trust_chains[0]["metadata"]["wallet_provider"]["jwks"],
+            self.wallet_provider_id,
+        )
         return trust_chains
 
     def get_endpoint(self):
@@ -62,7 +64,7 @@ class WalletInstanceAttestation(FederationService):
         # get endpoint from the Entity Configuration
         # pick one
         if trust_chains:
-            return trust_chains[0].metadata['wallet_provider']["token_endpoint"]
+            return trust_chains[0].metadata["wallet_provider"]["token_endpoint"]
         else:
             return ""
 
@@ -85,7 +87,7 @@ class WalletInstanceAttestation(FederationService):
         keyjar.add_keys(issuer_id=ec_key.kid, keys=[ec_key])
         keyjar.add_keys(issuer_id="", keys=[ec_key])
 
-        _jwt = JWT(key_jar=keyjar, sign_alg='ES256', iss=ec_key.kid)
+        _jwt = JWT(key_jar=keyjar, sign_alg="ES256", iss=ec_key.kid)
         _jwt.with_jti = True
 
         if request_args:
@@ -99,20 +101,22 @@ class WalletInstanceAttestation(FederationService):
 
         payload["cnf"] = {"jwk": ec_key.serialize()}
 
-        _jws = _jwt.pack(payload,
-                         aud=self.wallet_provider_id,
-                         kid=ec_key.kid,
-                         issuer_id=ec_key.kid,
-                         jws_headers={"typ": "wiar+jwt"}
-                         )
+        _jws = _jwt.pack(
+            payload,
+            aud=self.wallet_provider_id,
+            kid=ec_key.kid,
+            issuer_id=ec_key.kid,
+            jws_headers={"typ": "wiar+jwt"},
+        )
 
         _data = WalletInstanceRequest(assertion=_jws, grant_type=JWT_BEARER)
 
         return _data
 
     def gather_verify_arguments(
-            self, response: Optional[Union[dict, Message]] = None,
-            behaviour_args: Optional[dict] = None
+        self,
+        response: Optional[Union[dict, Message]] = None,
+        behaviour_args: Optional[dict] = None,
     ):
         """
         Need to add some information before running verify()
@@ -143,13 +147,13 @@ class WalletInstanceAttestation(FederationService):
 
     def post_parse_response(self, response, **kwargs):
         _client = self.upstream_get("unit")
-        kid = response[verified_claim_name("assertion")]['cnf']['jwk']["kid"]
+        kid = response[verified_claim_name("assertion")]["cnf"]["jwk"]["kid"]
         _wia = getattr(_client.context, "wallet_instance_attestation", None)
         if not _wia:
             _client.context.wallet_instance_attestation = {}
 
         _client.context.wallet_instance_attestation[kid] = {
             "attestation": response["assertion"],
-            "expires": response[verified_claim_name("assertion")]["exp"]
+            "expires": response[verified_claim_name("assertion")]["exp"],
         }
         return response

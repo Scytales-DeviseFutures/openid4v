@@ -14,6 +14,7 @@ from openid4v import ASSERTION_TYPE
 
 logger = logging.getLogger(__name__)
 
+
 class ClientAssertion(ClientAuthnMethod):
 
     def construct(self, request, service=None, http_args=None, **kwargs) -> dict:
@@ -26,11 +27,13 @@ class ClientAssertion(ClientAuthnMethod):
 
 class ClientAuthenticationAttestation(ClientAuthnMethod):
 
-    def construct(self,
-                  request: Union[dict, Message],
-                  service=None,
-                  http_args: Optional[dict] = None,
-                  **kwargs) -> dict:
+    def construct(
+        self,
+        request: Union[dict, Message],
+        service=None,
+        http_args: Optional[dict] = None,
+        **kwargs,
+    ) -> dict:
         logging.debug(f"kwargs: {kwargs}")
         entity_id = request.get("client_id", kwargs.get("thumbprint"))
 
@@ -54,21 +57,25 @@ class ClientAuthenticationAttestation(ClientAuthnMethod):
         request["client_assertion_type"] = ASSERTION_TYPE
         return {}
 
-    def construct_client_attestation_pop_jwt(self,
-                                             entity_id: str,
-                                             audience: str,
-                                             signing_key: JWK,
-                                             lifetime: Optional[int] = 300,
-                                             nonce: Optional[str] = "",
-                                             **kwargs):
+    def construct_client_attestation_pop_jwt(
+        self,
+        entity_id: str,
+        audience: str,
+        signing_key: JWK,
+        lifetime: Optional[int] = 300,
+        nonce: Optional[str] = "",
+        **kwargs,
+    ):
 
         keyjar = KeyJar()
         keyjar.add_keys(entity_id, keys=[signing_key])
 
         if lifetime:
-            _signer = JWT(key_jar=keyjar, sign_alg='ES256', iss=entity_id, lifetime=lifetime)
+            _signer = JWT(
+                key_jar=keyjar, sign_alg="ES256", iss=entity_id, lifetime=lifetime
+            )
         else:
-            _signer = JWT(key_jar=keyjar, sign_alg='ES256', iss=entity_id)
+            _signer = JWT(key_jar=keyjar, sign_alg="ES256", iss=entity_id)
         _signer.with_jti = True
 
         payload = {"aud": audience}

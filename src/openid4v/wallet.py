@@ -15,22 +15,22 @@ class Wallet(object):
         ec_key = new_ec_key(crv="P-256", key_ops=["sign"])
         self.keyjar.add_keys(issuer_id=self.id, keys=[ec_key])
 
-        _jwt = JWT(key_jar=self.keyjar, sign_alg='ES256', iss=self.id)
+        _jwt = JWT(key_jar=self.keyjar, sign_alg="ES256", iss=self.id)
         _jwt.with_jti = True
 
         payload = {
             "type": "WalletInstanceAttestationRequest",
             "nonce": rndstr(),  # create nonce
-            "cnf": {
-                "jwk": ec_key.serialize()
-            }
+            "cnf": {"jwk": ec_key.serialize()},
         }
 
-        return _jwt.pack(payload,
-                         aud=wallet_provider_id,
-                         kid=ec_key.kid,
-                         issuer_id=self.id,
-                         jws_headers={"typ": "var+jwt"})
+        return _jwt.pack(
+            payload,
+            aud=wallet_provider_id,
+            kid=ec_key.kid,
+            issuer_id=self.id,
+            jws_headers={"typ": "var+jwt"},
+        )
 
     def create_credential_request(self):
         pass

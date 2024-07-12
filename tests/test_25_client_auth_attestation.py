@@ -9,24 +9,11 @@ from openid4v.client.client_authn import ClientAuthenticationAttestation
 
 CLIENT_CONFIG = {
     "entity_id": "https://127.0.0.1:5005",
-    "httpc_params": {
-        "verify": False
-    },
+    "httpc_params": {"verify": False},
     "key_config": {
         "key_defs": [
-            {
-                "type": "RSA",
-                "use": [
-                    "sig"
-                ]
-            },
-            {
-                "type": "EC",
-                "crv": "P-256",
-                "use": [
-                    "sig"
-                ]
-            }
+            {"type": "RSA", "use": ["sig"]},
+            {"type": "EC", "crv": "P-256", "use": ["sig"]},
         ]
     },
     "trust_anchors": "file:trust_anchors.json",
@@ -34,7 +21,7 @@ CLIENT_CONFIG = {
         "entity_configuration",
         "entity_statement",
         "list",
-        "trust_mark_status"
+        "trust_mark_status",
     ],
     "entity_type": {
         "wallet": {
@@ -48,17 +35,9 @@ CLIENT_CONFIG = {
                     }
                 },
                 "key_conf": {
-                    "key_defs": [
-                        {
-                            "type": "EC",
-                            "crv": "P-256",
-                            "use": [
-                                "sig"
-                            ]
-                        }
-                    ]
-                }
-            }
+                    "key_defs": [{"type": "EC", "crv": "P-256", "use": ["sig"]}]
+                },
+            },
         },
         "pid_eaa_consumer": {
             "class": "openid4v.client.pid_eaa_consumer.PidEaaHandler",
@@ -69,16 +48,12 @@ CLIENT_CONFIG = {
                             "function": "idpyoidc.client.oauth2.add_on.pkce.add_support",
                             "kwargs": {
                                 "code_challenge_length": 64,
-                                "code_challenge_method": "S256"
-                            }
+                                "code_challenge_method": "S256",
+                            },
                         },
                         "dpop": {
                             "function": "idpyoidc.client.oauth2.add_on.dpop.add_support",
-                            "kwargs": {
-                                "dpop_signing_alg_values_supported": [
-                                    "ES256"
-                                ]
-                            }
+                            "kwargs": {"dpop_signing_alg_values_supported": ["ES256"]},
                         },
                         "pushed_authorization": {
                             "function": "idpyoidc.client.oauth2.add_on.par.add_support",
@@ -90,20 +65,15 @@ CLIENT_CONFIG = {
                                     "client_assertion": {
                                         "class": "openid4v.client.client_authn.ClientAssertion"
                                     }
-                                }
-                            }
-                        }
+                                },
+                            },
+                        },
                     },
                     "preference": {
-                        "response_types_supported": [
-                            "code"
-                        ],
-                        "response_modes_supported": [
-                            "query",
-                            "form_post"
-                        ],
+                        "response_types_supported": ["code"],
+                        "response_modes_supported": ["query", "form_post"],
                         "request_parameter_supported": True,
-                        "request_uri_parameter_supported": True
+                        "request_uri_parameter_supported": True,
                     },
                     "services": {
                         "pid_eaa_authorization": {
@@ -112,7 +82,7 @@ CLIENT_CONFIG = {
                                 "client_authn_methods": {
                                     "client_assertion": "openid4v.client.client_authn.ClientAssertion"
                                 }
-                            }
+                            },
                         },
                         "pid_eaa_token": {
                             "class": "openid4v.client.pid_eaa.AccessToken",
@@ -120,20 +90,18 @@ CLIENT_CONFIG = {
                                 "client_authn_methods": {
                                     "client_assertion": "openid4v.client.client_authn.ClientAuthenticationAttestation"
                                 }
-                            }
+                            },
                         },
                         "credential": {
                             "path": "credential",
                             "class": "openid4v.client.pid_eaa.Credential",
-                            "kwargs": {
-                                "client_auth_methods": ["bearer_header"]
-                            }
-                        }
-                    }
+                            "kwargs": {"client_auth_methods": ["bearer_header"]},
+                        },
+                    },
                 }
-            }
-        }
-    }
+            },
+        },
+    },
 }
 
 _OAUTH2_SERVICES = {
@@ -154,9 +122,10 @@ def test_construction():
 
     signing_key = new_ec_key(crv="P-256", key_ops=["sign"])
     attestation = ClientAuthenticationAttestation().construct(
-        request={}, service=client.get_service("authorization"),
+        request={},
+        service=client.get_service("authorization"),
         audience="https://server.example.com",
-        wallet_instance_attestation="__JWS__"
+        wallet_instance_attestation="__JWS__",
     )
 
     assert "~" in attestation

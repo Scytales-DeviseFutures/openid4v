@@ -23,10 +23,12 @@ logger = logging.getLogger(__name__)
 
 class AppAttestationService(object):
 
-    def __init__(self, upstream_get,
-                 crypt_config: Optional[dict] = None,
-                 nonce_lifetime: Optional[int] = 300
-                 ):
+    def __init__(
+        self,
+        upstream_get,
+        crypt_config: Optional[dict] = None,
+        nonce_lifetime: Optional[int] = 300,
+    ):
         self.upstream_get = upstream_get
         if crypt_config is None:
             crypt_config = default_crypt_config()
@@ -38,11 +40,13 @@ class AppAttestationService(object):
     def __call__(self, iccid):
         # create an encrypted statement
         rnd = rndstr(32)
-        info = json.dumps({
-            "iss": self.upstream_get("attribute", "entity_id"),
-            "iccid": iccid,
-            "exp": utc_time_sans_frac() + self.nonce_lifetime
-        })
+        info = json.dumps(
+            {
+                "iss": self.upstream_get("attribute", "entity_id"),
+                "iccid": iccid,
+                "exp": utc_time_sans_frac() + self.nonce_lifetime,
+            }
+        )
         nonce = base64.b64encode(
             self.crypt.encrypt(lv_pack(rnd, info).encode())
         ).decode("utf-8")

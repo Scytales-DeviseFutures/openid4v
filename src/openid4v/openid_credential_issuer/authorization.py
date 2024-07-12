@@ -1,4 +1,5 @@
 """The service that answers at the OAuth2 Authorization endpoint."""
+
 import logging
 
 from idpyoidc.message import oauth2
@@ -37,7 +38,9 @@ class Authorization(authorization.Authorization):
 
         auto_req_conf = kwargs.get("automatic_registration")
         if auto_req_conf:
-            self.automatic_registration = execute(auto_req_conf, upstream_get=self.upstream_get)
+            self.automatic_registration = execute(
+                auto_req_conf, upstream_get=self.upstream_get
+            )
         else:
             self.automatic_registration = None
 

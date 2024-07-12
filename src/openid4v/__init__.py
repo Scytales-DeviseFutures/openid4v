@@ -24,41 +24,51 @@ from idpyoidc.server.user_authn.authn_context import populate_authn_broker
 
 ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-client-attestation"
 
+
 def do_endpoints(conf, upstream_get):
     _endpoints = conf.get("endpoint")
     if _endpoints:
-        return build_endpoints(_endpoints, upstream_get=upstream_get, issuer=conf["issuer"])
+        return build_endpoints(
+            _endpoints, upstream_get=upstream_get, issuer=conf["issuer"]
+        )
     else:
         return {}
 
 
 class ServerEntity(ServerUnit):
-    name = 'eudi_server'
+    name = "eudi_server"
     parameter = {"endpoint": [Endpoint], "context": EndpointContext}
     claims_class = OAUTH2_Claims
 
     def __init__(
-            self,
-            config: Optional[Union[dict, ASConfiguration]] = None,
-            upstream_get: Optional[Callable] = None,
-            keyjar: Optional[KeyJar] = None,
-            cwd: Optional[str] = "",
-            cookie_handler: Optional[Any] = None,
-            httpc: Optional[Any] = None,
-            httpc_params: Optional[dict] = None,
-            entity_id: Optional[str] = "",
-            key_conf: Optional[dict] = None
+        self,
+        config: Optional[Union[dict, ASConfiguration]] = None,
+        upstream_get: Optional[Callable] = None,
+        keyjar: Optional[KeyJar] = None,
+        cwd: Optional[str] = "",
+        cookie_handler: Optional[Any] = None,
+        httpc: Optional[Any] = None,
+        httpc_params: Optional[dict] = None,
+        entity_id: Optional[str] = "",
+        key_conf: Optional[dict] = None,
     ):
         if config is None:
             config = {}
 
-        ServerUnit.__init__(self, upstream_get=upstream_get, keyjar=keyjar, httpc=httpc,
-                            httpc_params=httpc_params, entity_id=entity_id, key_conf=key_conf,
-                            config=config)
+        ServerUnit.__init__(
+            self,
+            upstream_get=upstream_get,
+            keyjar=keyjar,
+            httpc=httpc,
+            httpc_params=httpc_params,
+            entity_id=entity_id,
+            key_conf=key_conf,
+            config=config,
+        )
 
         if not isinstance(config, Base):
-            config['issuer'] = entity_id
-            config['base_url'] = entity_id
+            config["issuer"] = entity_id
+            config["base_url"] = entity_id
             config = ASConfiguration(config)
 
         self.config = config
@@ -73,7 +83,7 @@ class ServerEntity(ServerUnit):
             cookie_handler=cookie_handler,
             httpc=httpc,
             claims_class=self.claims_class(),
-            server_type=server_type
+            server_type=server_type,
         )
 
         self.context.claims_interface = init_service(
@@ -102,7 +112,7 @@ class ServerEntity(ServerUnit):
         if args:
             return {args[0]: self.context.provider_info}
         else:
-            return {'openid_provider': self.context.provider_info}
+            return {"openid_provider": self.context.provider_info}
 
     def setup_authz(self):
         authz_spec = self.config.get("authz")
@@ -132,17 +142,19 @@ class ServerEntity(ServerUnit):
             self.unit_get, self.config.get("client_authn_methods")
         )
 
+
 def extract_key_from_jws(token):
     # key can be in cnf:jwk in payload or jwk in header
     _jws = factory(token)
     _jwk = _jws.jwt.headers.get("jwk", None)
     if _jwk is None:
         _payload = _jws.jwt.payload()
-        _jwk = _payload['cnf'].get('jwk', None)
+        _jwk = _payload["cnf"].get("jwk", None)
     if _jwk:
         return key_from_jwk_dict(_jwk)
     else:
         return None
+
 
 def jws_issuer(token):
     _jws = factory(token)

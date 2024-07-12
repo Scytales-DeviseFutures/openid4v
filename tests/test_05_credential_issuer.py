@@ -28,7 +28,7 @@ TRUST_ANCHORS = {
                 "use": "sig",
                 "kid": "VEhkNWFFSzVnS3B5cDlxMGR0RHhwM0EzQzF3MFUwV09xNGQwV1F4NkRaWQ",
                 "n": "ii6GjcoPMtM92VS-Ig0P7ULEDyRNIVbOJFm1CTHtfuLMFct-kMe-cMC2RVqRZZnIbixU78WV6c7tWBxjvFw4fIEecSPxrrWpDTRMeQlsIleh1dySneZhATa5E6lWXKmspfznBVmypafnaWVGH5agWcOJpAYGreHxZPvD_GnVgNoUrcB0xHJc3Rt7U4Fbe1tYvS318hbgJk5sPTo1TnjgRUTOt88gvV8o0eOg0tG2Qm71Q6p14yEi_vZPq0nwLMg5MIwxjTHyFIkhlPraKpV-mO3FriKiWOVvxNlqZkclwO62plJkhH1uowE5nVnmAYwH4uXyLNyqPh8JSLycxNvQfw",
-                "e": "AQAB"
+                "e": "AQAB",
             },
             {
                 "kty": "EC",
@@ -36,32 +36,19 @@ TRUST_ANCHORS = {
                 "kid": "ekV1UUhhYVlESHAtUkxQR2lSWElSSXpaRzdqM2VFQ1Y0d0JTUmJjRjBBUQ",
                 "crv": "P-256",
                 "x": "IQ1Wea8xZuf5SGUuh9uKTQ7C_-_uTtOADd1TcsyJHF4",
-                "y": "REIWFydYKHM1zjRhmoHP-n_mjrCOPn-1fG3trz0R7MU"
-            }
+                "y": "REIWFydYKHM1zjRhmoHP-n_mjrCOPn-1fG3trz0R7MU",
+            },
         ]
     }
 }
 
 WALLET_CONFIG = {
     "entity_id": "https://127.0.0.1:5005",
-    "httpc_params": {
-        "verify": False
-    },
+    "httpc_params": {"verify": False},
     "key_config": {
         "key_defs": [
-            {
-                "type": "RSA",
-                "use": [
-                    "sig"
-                ]
-            },
-            {
-                "type": "EC",
-                "crv": "P-256",
-                "use": [
-                    "sig"
-                ]
-            }
+            {"type": "RSA", "use": ["sig"]},
+            {"type": "EC", "crv": "P-256", "use": ["sig"]},
         ]
     },
     "trust_anchors": TRUST_ANCHORS,
@@ -69,7 +56,7 @@ WALLET_CONFIG = {
         "entity_configuration",
         "entity_statement",
         "list",
-        "trust_mark_status"
+        "trust_mark_status",
     ],
     "entity_type": {
         "wallet": {
@@ -83,17 +70,9 @@ WALLET_CONFIG = {
                     }
                 },
                 "key_conf": {
-                    "key_defs": [
-                        {
-                            "type": "EC",
-                            "crv": "P-256",
-                            "use": [
-                                "sig"
-                            ]
-                        }
-                    ]
-                }
-            }
+                    "key_defs": [{"type": "EC", "crv": "P-256", "use": ["sig"]}]
+                },
+            },
         },
         "pid_eaa_consumer": {
             "class": "openid4v.client.pid_eaa_consumer.PidEaaHandler",
@@ -104,16 +83,12 @@ WALLET_CONFIG = {
                             "function": "idpyoidc.client.oauth2.add_on.pkce.add_support",
                             "kwargs": {
                                 "code_challenge_length": 64,
-                                "code_challenge_method": "S256"
-                            }
+                                "code_challenge_method": "S256",
+                            },
                         },
                         "dpop": {
                             "function": "idpyoidc.client.oauth2.add_on.dpop.add_support",
-                            "kwargs": {
-                                "dpop_signing_alg_values_supported": [
-                                    "ES256"
-                                ]
-                            }
+                            "kwargs": {"dpop_signing_alg_values_supported": ["ES256"]},
                         },
                         "pushed_authorization": {
                             "function": "idpyoidc.client.oauth2.add_on.par.add_support",
@@ -123,19 +98,14 @@ WALLET_CONFIG = {
                                         "class": "openid4v.client.client_authn.ClientAuthenticationAttestation"
                                     }
                                 }
-                            }
-                        }
+                            },
+                        },
                     },
                     "preference": {
-                        "response_types_supported": [
-                            "code"
-                        ],
-                        "response_modes_supported": [
-                            "query",
-                            "form_post"
-                        ],
+                        "response_types_supported": ["code"],
+                        "response_modes_supported": ["query", "form_post"],
                         "request_parameter_supported": True,
-                        "request_uri_parameter_supported": True
+                        "request_uri_parameter_supported": True,
                     },
                     "services": {
                         "pid_eaa_authorization": {
@@ -144,7 +114,7 @@ WALLET_CONFIG = {
                                 "client_authn_methods": {
                                     "client_assertion": "openid4v.client.client_authn.ClientAssertion"
                                 }
-                            }
+                            },
                         },
                         "pid_eaa_token": {
                             "class": "openid4v.client.pid_eaa.AccessToken",
@@ -152,7 +122,7 @@ WALLET_CONFIG = {
                                 "client_authn_methods": {
                                     "client_assertion": "openid4v.client.client_authn.ClientAuthenticationAttestation"
                                 }
-                            }
+                            },
                         },
                         "credential": {
                             "path": "credential",
@@ -161,13 +131,13 @@ WALLET_CONFIG = {
                                 "client_authn_methods": {
                                     "dpop_client_auth": "openid4v.client.client_authn.DPoPHeader"
                                 }
-                            }
-                        }
-                    }
+                            },
+                        },
+                    },
                 }
-            }
-        }
-    }
+            },
+        },
+    },
 }
 
 _OAUTH2_SERVICES = {
@@ -184,22 +154,11 @@ WALLET_PROVIDER_CONFIG = {
     "key_config": {
         "private_path": "private/wp_fed_keys.json",
         "key_defs": [
-            {
-                "type": "RSA",
-                "use": [
-                    "sig"
-                ]
-            },
-            {
-                "type": "EC",
-                "crv": "P-256",
-                "use": [
-                    "sig"
-                ]
-            }
+            {"type": "RSA", "use": ["sig"]},
+            {"type": "EC", "crv": "P-256", "use": ["sig"]},
         ],
         "public_path": "static/wp_fed_keys.json",
-        "read_only": False
+        "read_only": False,
     },
     "preference": {
         "policy_uri": "https://wallet-provider.example.org/privacy_policy",
@@ -208,31 +167,17 @@ WALLET_PROVIDER_CONFIG = {
         "attested_security_context": "https://wallet-provider.example.org/LoA/basic",
         "type": "WalletInstanceAttestation",
         "authorization_endpoint": "eudiw:",
-        "response_types_supported": [
-            "vp_token"
-        ],
+        "response_types_supported": ["vp_token"],
         "vp_formats_supported": {
-            "jwt_vp_json": {
-                "alg_values_supported": [
-                    "ES256"
-                ]
-            },
-            "jwt_vc_json": {
-                "alg_values_supported": [
-                    "ES256"
-                ]
-            }
+            "jwt_vp_json": {"alg_values_supported": ["ES256"]},
+            "jwt_vc_json": {"alg_values_supported": ["ES256"]},
         },
-        "request_object_signing_alg_values_supported": [
-            "ES256"
-        ],
-        "presentation_definition_uri_supported": False
+        "request_object_signing_alg_values_supported": ["ES256"],
+        "presentation_definition_uri_supported": False,
     },
     "authority_hints": [],
     "trust_anchors": {},
-    "endpoints": [
-        "entity_configuration"
-    ],
+    "endpoints": ["entity_configuration"],
     "entity_type": {
         "wallet_provider": {
             "class": "openid4v.wallet_provider.WalletProvider",
@@ -241,22 +186,11 @@ WALLET_PROVIDER_CONFIG = {
                     "keys": {
                         "private_path": "private/wp_keys.json",
                         "key_defs": [
-                            {
-                                "type": "RSA",
-                                "use": [
-                                    "sig"
-                                ]
-                            },
-                            {
-                                "type": "EC",
-                                "crv": "P-256",
-                                "use": [
-                                    "sig"
-                                ]
-                            }
+                            {"type": "RSA", "use": ["sig"]},
+                            {"type": "EC", "crv": "P-256", "use": ["sig"]},
                         ],
                         "public_path": "static/wp_keys.json",
-                        "read_only": False
+                        "read_only": False,
                     },
                     "endpoint": {
                         "token": {
@@ -267,11 +201,11 @@ WALLET_PROVIDER_CONFIG = {
                                     "client_secret_post",
                                     "client_secret_basic",
                                     "client_secret_jwt",
-                                    "private_key_jwt"
+                                    "private_key_jwt",
                                 ],
                                 "lifetime": 3600,
-                                "sign_alg": "ES256"
-                            }
+                                "sign_alg": "ES256",
+                            },
                         },
                         "app_attestation": {
                             "class": "openid4v.wallet_provider.app_attestation.AppAttestation",
@@ -281,20 +215,28 @@ WALLET_PROVIDER_CONFIG = {
                                     "kwargs": {
                                         "crypt_config": {
                                             "key_defs": [
-                                                {"type": "OCT", "use": ["enc"], "kid": "password"},
-                                                {"type": "OCT", "use": ["enc"], "kid": "salt"},
+                                                {
+                                                    "type": "OCT",
+                                                    "use": ["enc"],
+                                                    "kid": "password",
+                                                },
+                                                {
+                                                    "type": "OCT",
+                                                    "use": ["enc"],
+                                                    "kid": "salt",
+                                                },
                                             ]
                                         }
-                                    }
+                                    },
                                 }
-                            }
-                        }
+                            },
+                        },
                     },
-                    "wallet_provider_id": "https://127.0.0.1:4000"
+                    "wallet_provider_id": "https://127.0.0.1:4000",
                 }
-            }
+            },
         },
-    }
+    },
 }
 
 TA_ID = "https://ta.example.org"
@@ -305,28 +247,15 @@ CREDENTIAL_ISSUER_CONF = {
     "key_config": {
         "private_path": "private/qeaa_fed_keys.json",
         "key_defs": [
-            {
-                "type": "RSA",
-                "use": [
-                    "sig"
-                ]
-            },
-            {
-                "type": "EC",
-                "crv": "P-256",
-                "use": [
-                    "sig"
-                ]
-            }
+            {"type": "RSA", "use": ["sig"]},
+            {"type": "EC", "crv": "P-256", "use": ["sig"]},
         ],
         "public_path": "static/qeaa_fed_keys.json",
-        "read_only": False
+        "read_only": False,
     },
     "authority_hints": [],
     "trust_anchors": {},
-    "endpoints": [
-        "entity_configuration"
-    ],
+    "endpoints": ["entity_configuration"],
     "entity_type": {
         "openid_credential_issuer": {
             "class": "openid4v.openid_credential_issuer.OpenidCredentialIssuer",
@@ -337,27 +266,16 @@ CREDENTIAL_ISSUER_CONF = {
                         "client_secret_post": "idpyoidc.server.client_authn.ClientSecretPost",
                         "client_assertion": "openid4v.openid_credential_issuer.client_authn.ClientAssertion",
                         "dpop_client_auth": "idpyoidc.server.oauth2.add_on.dpop.DPoPClientAuth",
-                        "client_authentication_attestation": "openid4v.openid_credential_issuer.client_authn.ClientAuthenticationAttestation"
+                        "client_authentication_attestation": "openid4v.openid_credential_issuer.client_authn.ClientAuthenticationAttestation",
                     },
                     "keys": {
                         "key_defs": [
-                            {
-                                "type": "RSA",
-                                "use": [
-                                    "sig"
-                                ]
-                            },
-                            {
-                                "type": "EC",
-                                "crv": "P-256",
-                                "use": [
-                                    "sig"
-                                ]
-                            }
+                            {"type": "RSA", "use": ["sig"]},
+                            {"type": "EC", "crv": "P-256", "use": ["sig"]},
                         ],
                         "private_path": "private/qeaa_fed_keys.json",
                         "public_path": "static/qeaa_fed_keys.json",
-                        "read_only": False
+                        "read_only": False,
                     },
                     "endpoint": {
                         "token": {
@@ -367,34 +285,25 @@ CREDENTIAL_ISSUER_CONF = {
                                 "client_authn_method": [
                                     "client_authentication_attestation"
                                 ]
-                            }
+                            },
                         },
                         "authorization": {
                             "path": "authorization",
                             "class": "openid4v.openid_credential_issuer.authorization.Authorization",
                             "kwargs": {
-                                "response_types_supported": [
-                                    "code"
-                                ],
-                                "response_modes_supported": [
-                                    "query",
-                                    "form_post"
-                                ],
+                                "response_types_supported": ["code"],
+                                "response_modes_supported": ["query", "form_post"],
                                 "request_parameter_supported": True,
                                 "request_uri_parameter_supported": True,
                                 "automatic_registration": {
                                     "class": "openid4v.openid_credential_issuer.AutomaticRegistration"
-                                }
-                            }
+                                },
+                            },
                         },
                         "credential": {
                             "path": "credential",
                             "class": "openid4v.openid_credential_issuer.credential.Credential",
-                            "kwargs": {
-                                "client_authn_method": [
-                                    "dpop_client_auth"
-                                ]
-                            }
+                            "kwargs": {"client_authn_method": ["dpop_client_auth"]},
                         },
                         "pushed_authorization": {
                             "path": "pushed_authorization",
@@ -403,170 +312,158 @@ CREDENTIAL_ISSUER_CONF = {
                                 "client_authn_method": [
                                     "client_authentication_attestation"
                                 ]
-                            }
-                        }
+                            },
+                        },
                     },
                     "add_ons": {
                         "pkce": {
                             "function": "idpyoidc.server.oauth2.add_on.pkce.add_support",
                             "kwargs": {
                                 "code_challenge_length": 64,
-                                "code_challenge_method": "S256"
-                            }
+                                "code_challenge_method": "S256",
+                            },
                         },
                         "dpop": {
                             "function": "idpyoidc.server.oauth2.add_on.dpop.add_support",
-                            "kwargs": {
-                                "dpop_signing_alg_values_supported": [
-                                    "ES256"
-                                ]
-                            }
-                        }
+                            "kwargs": {"dpop_signing_alg_values_supported": ["ES256"]},
+                        },
                     },
                     "preference": {
                         "credentials_supported": [
                             {
                                 "format": "vc+sd-jwt",
                                 "id": "eudiw.pid.se",
-                                "cryptographic_binding_methods_supported": [
-                                    "jwk"
-                                ],
+                                "cryptographic_binding_methods_supported": ["jwk"],
                                 "cryptographic_suites_supported": [
                                     "RS256",
                                     "RS512",
                                     "ES256",
-                                    "ES512"
+                                    "ES512",
                                 ],
                                 "display": [
                                     {
                                         "name": "Example Swedish QEEA Provider",
-                                        "locale": "en-US"
+                                        "locale": "en-US",
                                     }
                                 ],
                                 "credential_definition": {
-                                    "type": [
-                                        "OpenBadgeCredential"
-                                    ],
+                                    "type": ["OpenBadgeCredential"],
                                     "credentialSubject": {
                                         "type": {
                                             "mandatory": True,
                                             "display": [
                                                 {
                                                     "name": "Type of achievement",
-                                                    "locale": "en-US"
+                                                    "locale": "en-US",
                                                 }
-                                            ]
+                                            ],
                                         },
                                         "achievement": {
                                             "mandatory": True,
                                             "display": [
                                                 {
                                                     "name": "Achievement description",
-                                                    "locale": "en-US"
+                                                    "locale": "en-US",
                                                 }
-                                            ]
-                                        }
-                                    }
-                                }
+                                            ],
+                                        },
+                                    },
+                                },
                             },
                             {
                                 "format": "vc+sd-jwt",
                                 "id": "eudiw.pid.se",
-                                "cryptographic_binding_methods_supported": [
-                                    "jwk"
-                                ],
+                                "cryptographic_binding_methods_supported": ["jwk"],
                                 "cryptographic_suites_supported": [
                                     "RS256",
                                     "RS512",
                                     "ES256",
-                                    "ES512"
+                                    "ES512",
                                 ],
                                 "display": [
                                     {
                                         "name": "Example Swedish PID Provider",
-                                        "locale": "en-US"
+                                        "locale": "en-US",
                                     }
                                 ],
                                 "credential_definition": {
-                                    "type": [
-                                        "PersonIdentificationData"
-                                    ],
+                                    "type": ["PersonIdentificationData"],
                                     "credentialSubject": {
                                         "given_name": {
                                             "mandatory": True,
-                                            "display": [{
-                                                "name": "Current First Name",
-                                                "locale": "en-US"
-                                            },
+                                            "display": [
                                                 {
-                                                    "name": "Nome",
-                                                    "locale": "it-IT"
-                                                }
-                                            ]
+                                                    "name": "Current First Name",
+                                                    "locale": "en-US",
+                                                },
+                                                {"name": "Nome", "locale": "it-IT"},
+                                            ],
                                         },
                                         "family_name": {
                                             "mandatory": True,
-                                            "display": [{
-                                                "name": "Current Family Name",
-                                                "locale": "en-US"
-                                            },
+                                            "display": [
                                                 {
-                                                    "name": "Cognome",
-                                                    "locale": "it-IT"
-                                                }
-                                            ]
+                                                    "name": "Current Family Name",
+                                                    "locale": "en-US",
+                                                },
+                                                {"name": "Cognome", "locale": "it-IT"},
+                                            ],
                                         },
                                         "birthdate": {
                                             "mandatory": True,
-                                            "display": [{
-                                                "name": "Date of Birth",
-                                                "locale": "en-US"
-                                            },
+                                            "display": [
+                                                {
+                                                    "name": "Date of Birth",
+                                                    "locale": "en-US",
+                                                },
                                                 {
                                                     "name": "Data di Nascita",
-                                                    "locale": "it-IT"
-                                                }
-                                            ]
+                                                    "locale": "it-IT",
+                                                },
+                                            ],
                                         },
                                         "place_of_birth": {
                                             "mandatory": True,
-                                            "display": [{
-                                                "name": "Place of Birth",
-                                                "locale": "en-US"
-                                            },
+                                            "display": [
+                                                {
+                                                    "name": "Place of Birth",
+                                                    "locale": "en-US",
+                                                },
                                                 {
                                                     "name": "Luogo di Nascita",
-                                                    "locale": "it-IT"
-                                                }
-                                            ]
+                                                    "locale": "it-IT",
+                                                },
+                                            ],
                                         },
                                         "unique_id": {
                                             "mandatory": True,
-                                            "display": [{
-                                                "name": "Unique Identifier",
-                                                "locale": "en-US"
-                                            },
+                                            "display": [
+                                                {
+                                                    "name": "Unique Identifier",
+                                                    "locale": "en-US",
+                                                },
                                                 {
                                                     "name": "Identificativo univoco",
-                                                    "locale": "it-IT"
-                                                }
-                                            ]
+                                                    "locale": "it-IT",
+                                                },
+                                            ],
                                         },
                                         "tax_id_code": {
                                             "mandatory": True,
-                                            "display": [{
-                                                "name": "Tax Id Number",
-                                                "locale": "en-US"
-                                            },
+                                            "display": [
+                                                {
+                                                    "name": "Tax Id Number",
+                                                    "locale": "en-US",
+                                                },
                                                 {
                                                     "name": "Codice Fiscale",
-                                                    "locale": "it-IT"
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            }
+                                                    "locale": "it-IT",
+                                                },
+                                            ],
+                                        },
+                                    },
+                                },
+                            },
                         ],
                         "attribute_disclosure": {
                             "": [
@@ -575,24 +472,20 @@ CREDENTIAL_ISSUER_CONF = {
                                 "birthdate",
                                 "place_of_birth",
                                 "unique_id",
-                                "tax_id_code"
+                                "tax_id_code",
                             ]
-                        }
+                        },
                     },
                     "authentication": {
                         "anon": {
                             "acr": "http://www.swamid.se/policy/assurance/al1",
                             "class": "idpyoidc.server.user_authn.user.NoAuthn",
-                            "kwargs": {
-                                "user": "diana"
-                            }
+                            "kwargs": {"user": "diana"},
                         }
                     },
                     "userinfo": {
                         "class": "idpyoidc.server.user_info.UserInfo",
-                        "kwargs": {
-                            "db_file": full_path("users.json")
-                        }
+                        "kwargs": {"db_file": full_path("users.json")},
                     },
                     "authz": {
                         "class": "idpyoidc.server.authz.AuthzHandling",
@@ -603,22 +496,22 @@ CREDENTIAL_ISSUER_CONF = {
                                         "supports_minting": [
                                             "access_token",
                                             "refresh_token",
-                                            "id_token"
+                                            "id_token",
                                         ],
-                                        "max_usage": 1
+                                        "max_usage": 1,
                                     },
                                     "access_token": {},
                                     "refresh_token": {
                                         "supports_minting": [
                                             "access_token",
                                             "refresh_token",
-                                            "id_token"
+                                            "id_token",
                                         ]
-                                    }
+                                    },
                                 },
-                                "expires_in": 43200
+                                "expires_in": 43200,
                             }
-                        }
+                        },
                     },
                     "session_params": {
                         "encrypter": {
@@ -627,32 +520,24 @@ CREDENTIAL_ISSUER_CONF = {
                                     "key_defs": [
                                         {
                                             "type": "OCT",
-                                            "use": [
-                                                "enc"
-                                            ],
-                                            "kid": "password"
+                                            "use": ["enc"],
+                                            "kid": "password",
                                         },
-                                        {
-                                            "type": "OCT",
-                                            "use": [
-                                                "enc"
-                                            ],
-                                            "kid": "salt"
-                                        }
+                                        {"type": "OCT", "use": ["enc"], "kid": "salt"},
                                     ]
                                 },
-                                "iterations": 1
+                                "iterations": 1,
                             }
                         }
-                    }
+                    },
                 }
-            }
+            },
         }
-    }
+    },
 }
 
 
-class TestCredentialIssuer():
+class TestCredentialIssuer:
 
     @pytest.fixture(autouse=True)
     def client_setup(self):
@@ -661,10 +546,10 @@ class TestCredentialIssuer():
             preference={
                 "organization_name": "The example federation operator",
                 "homepage_uri": "https://ta.example.com",
-                "contacts": "operations@ta.example.com"
+                "contacts": "operations@ta.example.com",
             },
             key_config={"key_defs": DEFAULT_KEY_DEFS},
-            endpoints=TA_ENDPOINTS
+            endpoints=TA_ENDPOINTS,
         )
 
         ANCHOR = {TA_ID: self.ta.keyjar.export_jwks()}
@@ -679,7 +564,7 @@ class TestCredentialIssuer():
 
         self.ta.server.subordinate[WALLET_PROVIDER_ID] = {
             "jwks": self.wallet_provider["federation_entity"].keyjar.export_jwks(),
-            'authority_hints': [TA_ID]
+            "authority_hints": [TA_ID],
         }
 
         CREDENTIAL_ISSUER_CONF["trust_anchors"] = ANCHOR
@@ -688,14 +573,16 @@ class TestCredentialIssuer():
 
         self.ta.server.subordinate[CREDENTIAL_ISSUER_ID] = {
             "jwks": self.credential_issuer["federation_entity"].keyjar.export_jwks(),
-            'authority_hints': [TA_ID]
+            "authority_hints": [TA_ID],
         }
 
     def _create_wia(self):
         # First get the nonce
         _server = self.wallet_provider["wallet_provider"]
         _endpoint = _server.get_endpoint("app_attestation")
-        _aa_response = _endpoint.process_request({"client_id": "urn:foo:bar", "iccid": "89900123450004598765"})
+        _aa_response = _endpoint.process_request(
+            {"client_id": "urn:foo:bar", "iccid": "89900123450004598765"}
+        )
         _msg = json.loads(_aa_response["response_msg"])
         _nonce = _msg["nonce"]
 
@@ -705,24 +592,37 @@ class TestCredentialIssuer():
         _service.wallet_provider_id = WALLET_PROVIDER_ID
         request_args = {"nonce": _nonce, "aud": WALLET_PROVIDER_ID}
         req_info = _service.get_request_parameters(
-            request_args,
-            endpoint=f"{WALLET_PROVIDER_ID}/token")
+            request_args, endpoint=f"{WALLET_PROVIDER_ID}/token"
+        )
 
         _endpoint = _server.get_endpoint("wallet_provider_token")
         _wia_request = _endpoint.parse_request(req_info["request"])
-        assert set(_wia_request.keys()) == {'assertion', 'grant_type', '__verified_assertion', '__iccid'}
+        assert set(_wia_request.keys()) == {
+            "assertion",
+            "grant_type",
+            "__verified_assertion",
+            "__iccid",
+        }
         # __verified_assertion is the unpacked assertion after the signature has been verified
         # __client_id is carried in the nonce
         _msgs = create_trust_chain_messages(self.wallet_provider, self.ta)
 
         with responses.RequestsMock() as rsps:
             for _url, _jwks in _msgs.items():
-                rsps.add("GET", _url, body=_jwks,
-                         adding_headers={"Content-Type": "application/json"}, status=200)
+                rsps.add(
+                    "GET",
+                    _url,
+                    body=_jwks,
+                    adding_headers={"Content-Type": "application/json"},
+                    status=200,
+                )
 
             _response = _endpoint.process_request(_wia_request)
 
-        return _response["response_args"]["assertion"], _wia_request['__verified_assertion']["iss"]
+        return (
+            _response["response_args"]["assertion"],
+            _wia_request["__verified_assertion"]["iss"],
+        )
 
     def test_process(self):
         _wia, _thumbprint = self._create_wia()
@@ -738,8 +638,13 @@ class TestCredentialIssuer():
 
             with responses.RequestsMock() as rsps:
                 for _url, _jwks in _msgs.items():
-                    rsps.add("GET", _url, body=_jwks,
-                             adding_headers={"Content-Type": "application/json"}, status=200)
+                    rsps.add(
+                        "GET",
+                        _url,
+                        body=_jwks,
+                        adding_headers={"Content-Type": "application/json"},
+                        status=200,
+                    )
 
                 _trust_chains = get_verified_trust_chains(_actor, oic.context.entity_id)
             _metadata = _trust_chains[0].metadata
@@ -760,9 +665,7 @@ class TestCredentialIssuer():
                 {
                     "type": "openid_credential",
                     "format": "vc+sd-jwt",
-                    "credential_definition": {
-                        "type": "PersonIdentificationData"
-                    }
+                    "credential_definition": {"type": "PersonIdentificationData"},
                 }
             ],
             "response_type": ["code"],
@@ -780,13 +683,20 @@ class TestCredentialIssuer():
         oic.context.par_db[_request_uri] = req_args
 
         with responses.RequestsMock() as rsps:
-            rsps.add("POST", _par_endpoint.full_path, body=json.dumps(_resp),
-                     adding_headers={"Content-Type": "application/json"}, status=200)
+            rsps.add(
+                "POST",
+                _par_endpoint.full_path,
+                body=json.dumps(_resp),
+                adding_headers={"Content-Type": "application/json"},
+                status=200,
+            )
 
             # PAR request
-            _req = push_authorization(request_args=AuthorizationRequest(**req_args),
-                                      service=_service,
-                                      wallet_instance_attestation=_wia)
+            _req = push_authorization(
+                request_args=AuthorizationRequest(**req_args),
+                service=_service,
+                wallet_instance_attestation=_wia,
+            )
 
         _authz_endpoint = oic.get_endpoint("authorization")
         _p_req = _authz_endpoint.parse_request(_req)
@@ -803,21 +713,23 @@ class TestCredentialIssuer():
                 "code": _code,
                 "redirect_uri": req_args["redirect_uri"],
                 "grant_type": "authorization_code",
-                "state": req_args["state"]
+                "state": req_args["state"],
             },
-            attestation=_wia
+            attestation=_wia,
         )
 
         _endp = oic.get_endpoint("token")
         _req = _endp.parse_request(token_req_info["request"])
         _token_resp = _endp.process_request(_req)
         assert _token_resp
-        assert set(_token_resp["response_args"].keys()) == {'access_token',
-                                                            'c_nonce',
-                                                            'c_nonce_expires_in',
-                                                            'expires_in',
-                                                            'scope',
-                                                            'token_type'}
+        assert set(_token_resp["response_args"].keys()) == {
+            "access_token",
+            "c_nonce",
+            "c_nonce_expires_in",
+            "expires_in",
+            "scope",
+            "token_type",
+        }
 
         # and now for the credential endpoint
 
@@ -826,22 +738,27 @@ class TestCredentialIssuer():
         cred_req_info = _service.get_request_parameters(
             request_args={
                 "format": "vc+sd-jwt",
-                "credential_definition": {
-                    "type": ["PersonIdentificationData"]
-                },
-                "access_token": _token_resp["response_args"]["access_token"]
+                "credential_definition": {"type": ["PersonIdentificationData"]},
+                "access_token": _token_resp["response_args"]["access_token"],
             },
             state=req_args["state"],
-            endpoint=_metadata['openid_credential_issuer']['credential_endpoint']
+            endpoint=_metadata["openid_credential_issuer"]["credential_endpoint"],
         )
 
         assert cred_req_info["method"] == "POST"
-        assert 'Authorization' in cred_req_info["headers"]
-        assert 'dpop' in cred_req_info["headers"]
+        assert "Authorization" in cred_req_info["headers"]
+        assert "dpop" in cred_req_info["headers"]
         assert cred_req_info["headers"]["Content-Type"] == "application/json"
 
         _endp = oic.get_endpoint("credential")
-        _req = _endp.parse_request(cred_req_info["request"], http_info={"headers": cred_req_info["headers"]})
+        _req = _endp.parse_request(
+            cred_req_info["request"], http_info={"headers": cred_req_info["headers"]}
+        )
         _resp = _endp.process_request(_req)
         assert _resp
-        assert set(_resp["response_args"].keys()) == {'c_nonce_expires_in', 'c_nonce', 'format', 'credential'}
+        assert set(_resp["response_args"].keys()) == {
+            "c_nonce_expires_in",
+            "c_nonce",
+            "format",
+            "credential",
+        }
